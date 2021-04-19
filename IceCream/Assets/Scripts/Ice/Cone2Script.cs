@@ -1,17 +1,28 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static TouchAndScreen;
+using static Helper;
+using static IceManager;
 
-public class ConeScript : MonoBehaviour, ICone
+public class Cone2Script : MonoBehaviour, ICone
 {
-    public static ConeScript cone;
+    public static Cone2Script cone;
     public static Vector4 rotMatrix_cone;
+    public static Vector2 moveForce_cone;
     private float diff_rot;
 
+    public float maxRotation = 45;
+    public float helpFactor = 1;
+    [HideInInspector]
+    public float helpForceMagnitude = 0;
+    [HideInInspector]
+    public Vector2 coneGravity;
+    public float coneGravityFactor;
 
     public float tilt_gravity;
     public Vector2 tilt_move;
+    public float autoRotation;
+    float autoRotate;
 
     Vector2 prevPosition, diff;
     public Rigidbody2D rb { get; protected set; }
@@ -20,6 +31,7 @@ public class ConeScript : MonoBehaviour, ICone
 
     public bool run;
 
+
     private void Awake()
     {
         cone = this;
@@ -27,7 +39,7 @@ public class ConeScript : MonoBehaviour, ICone
         rb = GetComponent<Rigidbody2D>();
         prevPosition = rb.position;
 
-        StartCoroutine(UpdateCone());
+        StartCoroutine(StartCone());
     }
 
     public bool TouchingCone() => true;
@@ -40,7 +52,19 @@ public class ConeScript : MonoBehaviour, ICone
     IEnumerator SettingTouchingCone()
     {
         yield return new WaitForFixedUpdate();
-        foreach (var contact in contacts) contact.UpdateConeTouch();
+        contacts.Clear();
+        List<Collider2D> cols = new List<Collider2D>();
+        GetComponent<Collider2D>().GetContacts(cols);
+        int sub = 0;
+        for (int i = 0; i < cols.Count; i++)
+        {
+            if (cols[i].tag != "Col")
+            {
+                contacts.Add(cols[i].GetComponent<IceScript>());
+                contacts[i - sub].UpdateConeTouch();
+            }
+            else sub++;
+        }
         yield break;
     }
 
@@ -59,27 +83,24 @@ public class ConeScript : MonoBehaviour, ICone
         contacts.Remove(other.GetComponent<IceScript>());
     }
 
-
+    
     void FixedUpdate()
     {
         if (!run) return;
 
-        rb.position = PixelToWorld(Input.mousePosition);
         rb.velocity = rb.position - prevPosition;
         UpdateRotation();
 
+        //Noch im Test:
+        helpForceMagnitude = helpFactor * (Mathf.Abs(rb.velocity.x) + 1) * Mathf.Abs(transform.eulerAngles.z / maxRotation);
+        coneGravity = iceGravity - rb.velocity;
+
         prevPosition = rb.position;
     }
-
-    IEnumerator UpdateCone()
+    
+    IEnumerator StartCone()
     {
-        //Startphase:
-        for (float count = 0; count < .5f; count += Time.fixedDeltaTime)
-        {
-            rb.position = PixelToWorld(Input.mousePosition);
-            yield return new WaitForFixedUpdate();
-        }
-
+        yield return new WaitForSeconds(.5f);
         run = true;
         yield break;
     }
@@ -97,13 +118,16 @@ public class ConeScript : MonoBehaviour, ICone
 
         //tilt_gravity:
         diff_rot += Mathf.Sin(rb.rotation * Mathf.Deg2Rad) * tilt_gravity;
+        if (Mathf.Abs(rb.rotation) > maxRotation && Mathf.Sign(rb.rotation) == Mathf.Sign(diff_rot)) { diff_rot = 0; rotMatrix_cone = new Vector4(1, 0, 0, 1); return; }
 
-        if (Mathf.Abs(rb.rotation) > 45 && Mathf.Sign(rb.rotation) == Mathf.Sign(diff_rot)) { diff_rot = 0; rotMatrix_cone = new Vector4(1, 0, 0, 1); return; }
+        //Auto-Ausrichten:
+        autoRotate = autoRotation * 10 / (10 + coneIceCount);
+        if(Mathf.Abs(rb.rotation) > autoRotate) diff_rot -= autoRotate * Mathf.Sign(rb.rotation) * (2 - Mathf.Cos(rb.rotation));
+
         rb.rotation += diff_rot;
 
         //Aktualisiere Rotationsmatrix:
-        diff_rot *= Mathf.Deg2Rad;
-        rotMatrix_cone = new Vector4(Mathf.Cos(diff_rot), -Mathf.Sin(diff_rot), Mathf.Sin(diff_rot), Mathf.Cos(diff_rot));
+        rotMatrix_cone = GetRotationMatrix(diff_rot * Mathf.Deg2Rad);
 
     }
 }

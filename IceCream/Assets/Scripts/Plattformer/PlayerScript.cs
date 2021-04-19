@@ -7,14 +7,14 @@ using static GameManager;
 
 public class PlayerScript : MonoBehaviour
 {
-    public float thresh_run = 0.1f;
+    public float thresh_run = 5;
     public float thresh_maxAngle = 35;
-    public float moveVeloctity;
+    public float moveVeloctity = 30;
     private float realVel;
 
-    public float thresh_jump;
-    public float thresh_jump_max;
-    public float jumpStrength;
+    public float thresh_jump = .3f;
+    public float thresh_jump_max = .4f;
+    public float jumpStrength = 2000;
     public bool jumpReady { get; private set; }
 
     private Rigidbody2D rb;
@@ -22,6 +22,7 @@ public class PlayerScript : MonoBehaviour
     private bool isMoving;
     [HideInInspector]
     public float angle { get; private set; }
+    public float camSize = 8;
 
 
     private int mask = 1 << 12;//Ground
@@ -49,7 +50,7 @@ public class PlayerScript : MonoBehaviour
         if (!staticCam)
         {
             cScript.offset = new Vector2(moveStrength * 40, 2 + Mathf.Abs(moveStrength) * 5);
-            Camera.main.orthographicSize = 8 + Mathf.Abs(moveStrength) * 10;  
+            Camera.main.orthographicSize = camSize + Mathf.Abs(moveStrength) * 10;  
             Camera.main.transform.eulerAngles = new Vector3(0, 0, -angle);
         }
 
@@ -69,16 +70,16 @@ public class PlayerScript : MonoBehaviour
         {
             jumpReady = false;
             rb.AddForce(Vector2.up * (Input.gyro.userAcceleration.z > thresh_jump_max ? thresh_jump_max : Input.gyro.userAcceleration.z) * jumpStrength);
-            anim.SetTrigger("jump");
+            //anim.SetTrigger("jump");
         }
-        anim.SetBool("moving", isMoving && !pauseMove);
+        //anim.SetBool("moving", isMoving && !pauseMove);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         jumpReady = true;
     }
-
+    /*
     private void OnCollisionStay2D(Collision2D collision)
     {
         anim.SetBool("inAir", false);
@@ -88,4 +89,5 @@ public class PlayerScript : MonoBehaviour
     {
         anim.SetBool("inAir", true);
     }
+    //*/
 }
