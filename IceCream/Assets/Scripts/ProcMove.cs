@@ -64,7 +64,7 @@ public class ProcMove : MonoBehaviour
         bool onMoveStop = false;
         bool animateFall = false;
         float fallDir = 1;
-        bool afterFall = false;
+        //bool afterFall = false;
 
         //leg.useWorldSpace = true;
         while (!stop)
@@ -73,7 +73,7 @@ public class ProcMove : MonoBehaviour
             if (animateFall)
             {
                 animateFall = false;
-                afterFall = true;
+                //afterFall = true;
                 onMoveStop = false;
                 if(right_leg ^ block_right)
                     for (float counter = 0; counter < .1f; counter += Time.fixedDeltaTime)

@@ -4,23 +4,23 @@ using UnityEngine;
 using static Helper;
 using static IceManager;
 using static Cone2Script;
+using static CameraScript;
 
 public class IceScript : MonoBehaviour, ICone
 {
-    public float damping;
-    public float threshMove;
-
     Vector3 prevPos;
     [HideInInspector]
     public Vector2 velocity;
     [HideInInspector]
-    public bool coneTouch;
+    public int id = -1;
 
-    List<Rigidbody2D> contacts = new List<Rigidbody2D>();
+    Rigidbody2D prevIce;
     Vector2 diff_vel, diff_pos;
-    float realDamping;
 
     Rigidbody2D rb;
+
+    private Vector2 posInCone;
+
 
     private void Start()
     {
@@ -32,24 +32,16 @@ public class IceScript : MonoBehaviour, ICone
         StartCoroutine(RunSim());
     }
 
-    public bool TouchingCone() => coneTouch;
-    public float GetDamping() => damping;
-    public void ResetTouchingCone() { coneTouch = false; transform.parent = null; contacts.Clear(); }
-    public void UpdateConeTouch()
-    {
-        if (!coneTouch)
-        {
-            coneIceCount++;
-            coneTouch = true;
-            transform.parent = cone.transform;
-            List<Collider2D> cols = new List<Collider2D>();
-            for(int i = 0; i < cols.Count; i++)
-            {
-                contacts.Add(cols[i].GetComponent<Rigidbody2D>());
-                contacts[i].GetComponent<ICone>().UpdateConeTouch();
-            }
-        }
-    }
+
+    public int GetID() => id;
+    public void SetID(int _id) => id = _id;
+    public Rigidbody2D Get_rb() => rb;
+    public Vector2 Get_posInCone() => posInCone;
+    public void Set_posInCone(Vector2 position) => posInCone = position;
+    public void Set_prevIce(Rigidbody2D _prev) { prevIce = _prev; }
+    public Transform Get_transform() => transform;
+    public string Get_name() => name;
+    public void ResetTouchingCone() { id = -1; transform.parent = null; prevIce = null; }
 
     IEnumerator RunSim()
     {
@@ -57,72 +49,20 @@ public class IceScript : MonoBehaviour, ICone
 
         while (true)
         {
-            velocity = rb.velocity + iceGravity;
-            Vector2 virt_Vel = Vector2.zero;
-
-            int substract = 0;
-            foreach(var contact in contacts)
+            //Waffel-Physik:
+            if (id > 0)
             {
-                if (!contact.GetComponent<ICone>().TouchingCone()) { substract++; continue; }
+                Vector2 diff_pos = transform.position - cone.transform.position;
+                float rot = Mathf.Atan2(diff_pos.y, diff_pos.x) * Mathf.Rad2Deg - 90;
+                while (Mathf.Abs(rot) > 180) rot -= 360 * Mathf.Sign(rot);
 
-
-                diff_vel = velocity - contact.velocity;
-                diff_pos = transform.position - contact.transform.position;
-
-                if (contact.gameObject.layer == 12) realDamping = 1;
-                else
-                {
-                    realDamping = 1 - diff_pos.sqrMagnitude;
-                    realDamping *= contact.GetComponent<ICone>().GetDamping();
-                    realDamping = realDamping > 1 ? 1 : realDamping;
-                }
-
-                virt_Vel +=  Vector2.Lerp(velocity, contact.velocity, realDamping);
+                transform.localPosition = posInCone * (1 - Mathf.Abs(rot) / 360);
             }
-            //Setze aktive geschwindigkeit entsprechend der auswertung:
-            if (contacts.Count > substract)
+            else
             {
-                velocity = virt_Vel / (contacts.Count - substract);
-                if (!coneTouch) velocity += iceGravity;//evtl. ohne Kondition?
+                rb.velocity += iceGravity;
             }
             
-            //Halte Position bei Thresh:
-            if (velocity.sqrMagnitude < threshMove && coneTouch) rb.velocity = Vector2.zero;
-            else rb.velocity = velocity;
-
-            if (coneTouch)
-            {
-                
-                transform.position += (Vector3)cone.rb.velocity * .0015f;// * Time.fixedDeltaTime;
-
-                //Drehe bei rotation der Waffel mit:
-                transform.localPosition = new Vector2(
-                    rotMatrix_cone.x * transform.localPosition.x + rotMatrix_cone.y * transform.localPosition.y,
-                    rotMatrix_cone.z * transform.localPosition.x + rotMatrix_cone.w * transform.localPosition.y);
-                //*
-                //Wenn Maus/Touch benutzt wird:
-                //transform.position = (Vector2)transform.position + cone.rb.velocity;
-
-                //Helfende Kraft:
-                //*
-                diff_pos = transform.position - cone.transform.position;
-                float dist = 10/(10 + diff_pos.sqrMagnitude);
-                float rot = Mathf.Atan2(diff_pos.y, diff_pos.x) - 90 * Mathf.Deg2Rad;
-
-                //rb.velocity += new Vector2(Mathf.Sin(rot), 1-Mathf.Cos(rot)) * dist * cone.helpForceMagnitude;
-                //rb.position += new Vector2(Mathf.Sin(rot), 1-Mathf.Cos(rot)) * dist * cone.helpForceMagnitude;
-                //rb.AddForce(new Vector2(Mathf.Sin(rot), 1 - Mathf.Cos(rot)) * dist * cone.helpForceMagnitude);
-                //rb.velocity += Vector2.right * Mathf.Sin(rot) * dist * cone.helpForceMagnitude;
-                //rb.position += Vector2.up * (1-Mathf.Cos(rot)) * dist * cone.helpForceMagnitude;
-                //Debug.Log(new Vector2(Mathf.Sin(rot), 1 - Mathf.Cos(rot)));
-
-                //if (name == "Ice (6)") Debug.Log(new Vector2(Mathf.Sin(rot), 1 - Mathf.Cos(rot)) * dist * cone.helpForceMagnitude);
-                //*/
-
-                //*
-
-            }
-
             prevPos = transform.position;
             yield return new WaitForFixedUpdate();
         }
@@ -133,21 +73,43 @@ public class IceScript : MonoBehaviour, ICone
     private void OnTriggerEnter2D(Collider2D other)
     {
         int _layer = other.gameObject.layer;
-        if (_layer != 8 && _layer != 12 || other.tag == "Col") return;//Weder Eis noch Cone
+        if(id > 0)//Eis ist auf der Waffel
+        {
+            if (other.tag == "Col" || _layer == 8 || _layer == 12) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
 
-        if (!other.GetComponent<ICone>().TouchingCone() ^ coneTouch) coneIceCount++;
-        coneTouch |= other.GetComponent<ICone>().TouchingCone();
-        transform.parent = coneTouch? cone.transform : null;
-        contacts.Add(other.GetComponent<Rigidbody2D>());
+            //Hier Code einfügen, der behandelt, wie eis von der Umgebung runtergeschubst werden kann:
+
+            return;
+        }
+        else//Eis fliegt durch die Gegend
+        {
+            if (_layer != 8 && _layer != 12 || other.tag == "Col") //Weder Eis noch Cone getroffen
+            {
+                //Hier den Code einfügen, der beschreibt, was passiert, wenn fliegendes Eis in Kontakt mit der Umgebung kommt:         
+
+                return;
+            }
+
+            //Eis wird in den Turm integriert:
+
+            //Finde den Kontakt mit der niedriegsten ID:
+            List<Collider2D> contacts = new List<Collider2D>();
+            GetComponent<Collider2D>().GetContacts(contacts);
+            ICone tmp = null, lowest_Ice = contacts[0].GetComponent<ICone>();
+            for(int i = 1; i < contacts.Count; i++)
+            {
+                tmp = contacts[i].GetComponent<ICone>();
+                if (tmp == null) continue;
+                lowest_Ice = tmp.GetID() < lowest_Ice.GetID() ? tmp : lowest_Ice;
+            }
+
+            //Update den Turm:
+            transform.parent = cone.transform;
+            id = lowest_Ice.GetID()+1;
+            cScript.offset = new Vector2(0, id * .25f);
+            coneIceCount++;
+            cone.iceTower.Insert(id, this);
+            cone.UpdateConeTower(id);
+        }
     }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        int _layer = other.gameObject.layer;
-        if (_layer != 8 && _layer != 12 || !other.isTrigger || !coneTouch || other.tag == "Col") return;
-
-        CallTouchReset();
-        cone.SetTouchingCone();
-    }
-
 }

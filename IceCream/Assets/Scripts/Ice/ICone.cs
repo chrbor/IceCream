@@ -4,7 +4,12 @@ using UnityEngine;
 
 public interface ICone
 {
-    bool TouchingCone();
-    float GetDamping();
-    void UpdateConeTouch();
+    Rigidbody2D Get_rb();
+    int GetID();
+    void SetID(int _id);
+    Vector2 Get_posInCone();
+    void Set_posInCone(Vector2 position);
+    void Set_prevIce(Rigidbody2D _prev);
+    string Get_name();
+    Transform Get_transform();
 }
