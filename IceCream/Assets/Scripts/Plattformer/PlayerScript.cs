@@ -9,36 +9,42 @@ public class PlayerScript : MonoBehaviour
 {
     public float thresh_run = 5;
     public float thresh_maxAngle = 35;
-    public float moveVeloctity = 30;
-    private float realVel;
 
     public float thresh_jump = .3f;
     public float thresh_jump_max = .4f;
-    public float jumpStrength = 2000;
+    public PlayerAttribute attribute;
     public bool jumpReady { get; private set; }
 
     private Rigidbody2D rb;
-    private Animator anim;
+    private ProcMove pMove;
     private bool isMoving;
     [HideInInspector]
     public float angle { get; private set; }
+    [HideInInspector]
     public float camSize = 8;
 
+    bool prevTapp = false;
 
     private int mask = 1 << 12;//Ground
 
     void Awake()
     {
+        player = gameObject;
+        pAttribute = attribute;
+        attribute.Set_vel();
         rb = GetComponent<Rigidbody2D>();
-        anim = transform.GetChild(0).GetComponent<Animator>();
+        pMove = transform.GetChild(0).GetComponent<ProcMove>();
         Input.gyro.enabled = true;
-        realVel = moveVeloctity * Time.fixedDeltaTime;
         jumpReady = true;
     }
     
     // Update is called once per frame
     void FixedUpdate()
     {
+        //Feuer Eis:
+        if (Input.touchCount > 0 && !prevTapp) IceManager.CallFireIce();
+        prevTapp = Input.touchCount > 0;
+
         //Laufen:
         isMoving = false;
         if(Input.gyro.gravity.y > -0.2f) { if(!staticCam) Camera.main.transform.rotation = Quaternion.identity; return; }
@@ -58,7 +64,7 @@ public class PlayerScript : MonoBehaviour
         {
             isMoving = true;
             RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.up * 0.5f, Vector3.right * moveStrength, 1.5f, mask);
-            rb.position += Vector2.right * realVel * moveStrength;
+            rb.position += Vector2.right * attribute.real_vel * moveStrength;
             if (hit.collider) rb.position += Vector2.up * 0.2f;
         }
     }
@@ -69,8 +75,8 @@ public class PlayerScript : MonoBehaviour
         if (Input.gyro.userAcceleration.z > thresh_jump && jumpReady && !pauseMove)
         {
             jumpReady = false;
-            rb.AddForce(Vector2.up * (Input.gyro.userAcceleration.z > thresh_jump_max ? thresh_jump_max : Input.gyro.userAcceleration.z) * jumpStrength);
-            //anim.SetTrigger("jump");
+            //rb.AddForce(Vector2.up * (Input.gyro.userAcceleration.z > thresh_jump_max ? thresh_jump_max : Input.gyro.userAcceleration.z) * jumpStrength);
+            rb.velocity = new Vector2(rb.velocity.x, (Input.gyro.userAcceleration.z > thresh_jump_max ? 1 : Input.gyro.userAcceleration.z/thresh_jump_max) * attribute.jumpPower);
         }
         //anim.SetBool("moving", isMoving && !pauseMove);
     }
@@ -82,12 +88,12 @@ public class PlayerScript : MonoBehaviour
     /*
     private void OnCollisionStay2D(Collision2D collision)
     {
-        anim.SetBool("inAir", false);
+        pMove.onGround = true;
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        anim.SetBool("inAir", true);
+        pMove.onGround = false;
     }
     //*/
 }

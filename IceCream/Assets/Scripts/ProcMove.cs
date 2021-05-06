@@ -6,11 +6,20 @@ using static Helper;
 public class ProcMove : MonoBehaviour
 {
     static int mask = (1 << 10) | (1 << 11);
+    private Animator anim;
+    bool onGround = true;
+    //bool hasCone = false;
+    int coneDir;
 
     public LineRenderer leg_left;
     public LineRenderer leg_right;
+    public Texture moveLeftLeg, moveRightLeg;
+    Material mat_leftLeg, mat_rightLeg;
+    int tex_nameID;
     GameObject foot_left;
     GameObject foot_right;
+    SpriteRenderer foot_left_sprite;
+    SpriteRenderer foot_right_sprite;
 
     public float boneLength;
     public float stepLength;
@@ -20,23 +29,34 @@ public class ProcMove : MonoBehaviour
 
     public AnimationCurve stepMovement;
     [Header("Positionen der Beine in der Luft wenn nach rechts springend:")]
-    public Vector2 rightJumpPos, leftJumpPos;
+    public Vector2 rightJumpPos;
+    public Vector2 leftJumpPos;
     public float rightJumpAngle, leftJumpAngle;
 
     float prev_x;
     bool block_left, block_right;
+    float blockVal_left, blockVal_right;
     bool falling;
     bool stop;
 
 
     void Start()
     {
+        anim = GetComponent<Animator>();
+        //SetConeActive(0);
+
+        mat_leftLeg = leg_left.material;
+        mat_rightLeg = leg_right.material;
+        tex_nameID = mat_leftLeg.shader.GetPropertyNameId(0);
+
         boneSqrLength = boneLength * boneLength;
 
         foot_left = leg_left.transform.GetChild(0).gameObject;
         foot_right = leg_right.transform.GetChild(0).gameObject;
+        foot_left_sprite = foot_left.GetComponent<SpriteRenderer>();
+        foot_right_sprite = foot_right.GetComponent<SpriteRenderer>();
+        prev_x = transform.position.x;
         stop = false;
-
 
         StartCoroutine(UpdateFalling());
         StartCoroutine(Update_Leg(leg_left, leg_right, false));
@@ -48,8 +68,18 @@ public class ProcMove : MonoBehaviour
         speed = transform.position.x - prev_x;
         direction = Mathf.Sign(speed);
         speed = Mathf.Abs(speed);
-        if (speed < .05f) direction = 0;
+        if (speed < .005f) direction = 0;
         prev_x = transform.position.x;
+
+        //foot_left_sprite.flipX = direction < 0;
+        //foot_right_sprite.flipX = foot_left_sprite.flipX;
+        mat_leftLeg.SetTexture(tex_nameID, direction < 0 ? moveLeftLeg : moveRightLeg);
+        mat_rightLeg.SetTexture(tex_nameID, direction < 0 ? moveLeftLeg : moveRightLeg);
+
+        if (direction != 0 && coneDir == 0) transform.localScale = new Vector3(direction, 1, 1);
+        anim.SetBool("Moving", direction != 0);
+        anim.SetBool("OnGround", onGround);
+        anim.SetFloat("speed", (coneDir == 0 ? 1 : direction * coneDir) * speed / Time.fixedDeltaTime);
     }
 
     IEnumerator Update_Leg(LineRenderer leg, LineRenderer otherLeg, bool right_leg)
@@ -72,6 +102,7 @@ public class ProcMove : MonoBehaviour
             //Halte Fuß auf Position:
             if (animateFall)
             {
+                onGround = true;
                 animateFall = false;
                 //afterFall = true;
                 onMoveStop = false;
@@ -87,21 +118,29 @@ public class ProcMove : MonoBehaviour
             {
                 if (right_leg)
                 {
-                    while(((direction * (leg.transform.position.x - foot.transform.position.x) <= stepLength && Mathf.Abs(direction) > 0) || block_right) && !falling)
+                    //solange     distanz zum zentrum < stepLength && in Bewegung    ||    geblockt ist,     Ausnahme: Char fällt 
+                    blockVal_left = leg.transform.position.x - foot.transform.position.x;
+                    while (((direction * blockVal_left <= stepLength && Mathf.Abs(direction) > 0) || blockVal_left * direction < blockVal_right * direction || block_right) && !falling)
                     {
                         foot.transform.position = footPos;
                         UpdateUpperBone(leg, foot.transform.localPosition);
+
                         yield return new WaitForFixedUpdate();
+                        blockVal_left = leg.transform.position.x - foot.transform.position.x;
                     }
                 }
                 else
                 {
-                    while (((direction * (leg.transform.position.x - foot.transform.position.x) <= stepLength && Mathf.Abs(direction) > 0) || block_left) && !falling)
+                    blockVal_right = leg.transform.position.x - foot.transform.position.x;
+                    while (((direction * blockVal_right <= stepLength && Mathf.Abs(direction) > 0) || blockVal_right * direction < blockVal_left * direction || block_left) && !falling)
                     {
                         foot.transform.position = footPos;
                         UpdateUpperBone(leg, foot.transform.localPosition);
+
                         yield return new WaitForFixedUpdate();
+                        blockVal_right = leg.transform.position.x - foot.transform.position.x;
                     }
+                    //Debug.Log("left_leg:\nfall: " + falling + ", left: " + blockVal_right * direction + ", left_pure: " + blockVal_right);
                 }
             }
 
@@ -110,18 +149,20 @@ public class ProcMove : MonoBehaviour
             {
                 //Falls der Char fällt, dann spiele Fallanimation ab:
                 //Die Fallanimation nährt sich schnell einer vordefinierten position an
-                fallDir = direction == 0 ? 1 : direction;
+                fallDir = coneDir == 0 ? (direction == 0 ? 1 : direction) : coneDir;
                 if (right_leg)
                 {
-                    Vector2 jumpPos = (fallDir == 1 ? rightJumpPos : leftJumpPos) * new Vector2(fallDir, 1);
+                    Vector2 jumpPos =  rightJumpPos * new Vector2(fallDir, 1);// ;
                     hitpoint = jumpPos  + (Vector2)leg_right.transform.position;
-                    hit2point = jumpPos + RotToVec(fallDir * rightJumpAngle);
+                    hit2point = hitpoint + RotToVec(fallDir * /*(fallDir == 1 ? rightJumpAngle : leftJumpAngle)*/rightJumpAngle * Mathf.Deg2Rad);
+
+                    onGround = false;
                 }
                 else
                 {
-                    Vector2 jumpPos = (fallDir == 1 ? leftJumpPos : rightJumpPos) * new Vector2(fallDir, 1);
+                    Vector2 jumpPos = leftJumpPos * new Vector2(fallDir, 1);// ;
                     hitpoint = jumpPos + (Vector2)leg_left.transform.position;
-                    hit2point = jumpPos + RotToVec(fallDir * leftJumpAngle);
+                    hit2point = hitpoint + RotToVec(fallDir * /*(fallDir == 1 ? leftJumpAngle : rightJumpAngle)*/leftJumpAngle * Mathf.Deg2Rad);
                 }
                 animateFall = true;
             }
@@ -129,10 +170,17 @@ public class ProcMove : MonoBehaviour
             {
                 if (direction == 0)
                 {
-                    if (onMoveStop) { yield return new WaitForFixedUpdate(); continue; }
+                    if (onMoveStop && Mathf.Abs(leg.transform.position.x - foot.transform.position.x) < 0.1f)
+                    {
+                        yield return new WaitForFixedUpdate();
+                        foot.transform.position = footPos;
+                        UpdateUpperBone(leg, foot.transform.localPosition);
+                        continue;
+                    }
                     else onMoveStop = true;
                 }
-                else onMoveStop = false;
+                else
+                    onMoveStop = false;
 
                 //Setze Fuß nach vorne:
                 //if(Mathf.Abs(leg.transform.position.x - foot.transform.position.x) < Mathf.Abs(otherLeg.transform.position.x - otherFoot.transform.position.x)) { yield return new WaitForFixedUpdate(); continue; }
@@ -140,14 +188,14 @@ public class ProcMove : MonoBehaviour
                 else block_right = true;
 
                 //Überprüfe, ob der Boden existiert:
-                float rayStart = stepLength * (1 + speed * 5);
+                float rayStart = stepLength;
                 Vector2 origin = leg.transform.position + Vector3.right * rayStart * direction;
                 hit = Physics2D.Raycast(origin, Vector2.down, 3.5f * boneLength, mask);
-                if (!hit.collider) hit = Physics2D.Raycast(new Vector2(origin.x - direction, leg.transform.position.y), Vector2.down, 3.5f * boneLength, mask);
+                if (hit.collider == null) hit = Physics2D.Raycast(new Vector2(origin.x - direction, leg.transform.position.y), Vector2.down, 3.5f * boneLength, mask);
                 
 
                 hit2 = Physics2D.Raycast(new Vector2(hit.point.x + .01f, leg.transform.position.y), Vector2.down, 5 * boneLength, mask);
-                if (!(hit.collider || hit2.collider))
+                if (hit.collider == null || hit2.collider == null)
                 {
                     block_right = false;
                     block_left = false;
@@ -162,7 +210,7 @@ public class ProcMove : MonoBehaviour
 
             //Spiele Loop ab, mit dem der Fuß nach vorne gesetzt wird:
             float foot_rot_start = foot.transform.eulerAngles.z;
-            Vector2 diff2 = hitpoint - hit2point;
+            Vector2 diff2 = hit2point - hitpoint;
             float foot_rot_goal = Mathf.Atan2(diff2.y, diff2.x) * Mathf.Rad2Deg;
             float foot_rot_diff = Mathf.Atan2(diff2.y, diff2.x) * Mathf.Rad2Deg - foot_rot_start;
             while (Mathf.Abs(foot_rot_diff) > 180) foot_rot_diff -= 360 * Mathf.Sign(foot_rot_diff);
@@ -180,6 +228,21 @@ public class ProcMove : MonoBehaviour
                 {
                     if (!falling) break;
                     start += transform.position - prev;
+
+                    if(coneDir == 0 && direction != loopDir && direction != 0)//Bei Richtungswechsel ändere Winkel der Füße und Beine
+                    {
+                        foot_rot_diff = 0;
+                        foot_rot_start = (right_leg ? rightJumpAngle : leftJumpAngle) * direction;
+                        //foot_rot_start = right_leg ? ;
+
+                        start = new Vector2(direction, 1) * (right_leg ? rightJumpPos : leftJumpPos);
+                        if (right_leg) Debug.Log((direction > 0));
+
+                        start += (right_leg ? leg_right.transform.position : leg_left.transform.position);
+                        diff = Vector2.zero;
+                        
+                        loopDir = direction;
+                    }
                     count += (1 - count) / 10;
                 }
                 else
@@ -203,7 +266,7 @@ public class ProcMove : MonoBehaviour
                 block_right = direction > 0;
                 block_left = !block_right;
             }
-            else if (direction == loopDir)
+            else //if (direction == loopDir) //Verursacht den doppeltipp-stretch-Fehler!
             {
                 footPos = start + diff;
                 foot.transform.eulerAngles = Vector3.forward * (foot_rot_start + foot_rot_diff);
@@ -241,7 +304,14 @@ public class ProcMove : MonoBehaviour
         if (diff_sqrBone >= boneSqrLength) leg.SetPosition(1, middle);
         else
             leg.SetPosition(1, 
-                middle + (Vector3)RotToVec(Mathf.Atan2(diff.y, diff.x) + Mathf.PI/2 * (direction == 0 ? 1 : direction)) //Richtung vom Mittelpunkt
+                middle + (Vector3)RotToVec(Mathf.Atan2(diff.y, diff.x) + Mathf.PI/2)// * (direction == 0 ? 1 : direction)) //Richtung vom Mittelpunkt
                 * Mathf.Sqrt(boneSqrLength - diff_sqrBone));//Weite vom Mittelpunkt
+    }
+
+    public void SetConeActive(int _coneDir)
+    {
+        coneDir = _coneDir;
+        if(coneDir != 0) transform.localScale = new Vector3(coneDir, 1, 1);
+        anim.Play(coneDir == 0 ? "pIdle" : "phIdle", 0);
     }
 }

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35632478c96cdb6449cc7a990872fa00, type: 3}
+  m_Name: Strawberry
+  m_EditorClassIdentifier: 
+  nameIce: 
+  primSprite:
+    sprite: {fileID: 21300000, guid: f4b961222a18b68459ab19dbdbc82612, type: 3}
+    dominance: 5
+  prim_secSprite:
+    sprite: {fileID: 21300000, guid: 594fd59e4818c0c4a95f613c4c92056e, type: 3}
+    dominance: 5
+  secSprites:
+  - sprite: {fileID: 21300000, guid: 594fd59e4818c0c4a95f613c4c92056e, type: 3}
+    dominance: 5
+  prim_dominance: 5
+  sec_dominance: 5
+  scale: 0.9
+  mass: 1
+  shootPower: 14
+  life: 5
+  explosionRange: 0
+  isMelange: 0
+  sticky: 0
+  sticksOnGround: 0
+  reactOnImpact: 0
+  growing: 0.01
+  endScale: 3
+  splitCount: 0
+  material: {fileID: 6200000, guid: 97deec4a034a42d46a81eea81557abd3, type: 2}
+  speed: 1.07
+  jumpForce: 1.02
+  agility: 1.03
+  instability: 1.1
+  upForce: 1.02
+  dropSpeed: 0.9

@@ -19,7 +19,7 @@ TagManager:
   - Obstacles
   - Ground
   - Cone
-  - 
+  - Ice_col
   - 
   - 
   - 
@@ -48,14 +48,14 @@ TagManager:
   - name: Enemies
     uniqueID: 3353285161
     locked: 0
-  - name: Player
-    uniqueID: 131783149
-    locked: 0
   - name: Ice
     uniqueID: 4112804313
     locked: 0
   - name: Cone
     uniqueID: 2554659069
+    locked: 0
+  - name: Player
+    uniqueID: 131783149
     locked: 0
   - name: Foreground
     uniqueID: 2176095423
