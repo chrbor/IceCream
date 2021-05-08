@@ -1136,7 +1136,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 333660831}
   m_BodyType: 0
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -1161,7 +1161,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   id: -1
-  attribute: {fileID: 11400000, guid: 01595159d917c6049baa91dd5572bd8e, type: 2}
+  attribute: {fileID: 11400000, guid: 587d52818af7ef546a584df9afcb716a, type: 2}
 --- !u!58 &333660834
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1236,7 +1236,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 333660831}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.52, y: 3.23, z: 0}
+  m_LocalPosition: {x: 0.67999935, y: 4.62, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 191135703}
@@ -1890,7 +1890,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2028,7 +2028,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 550088684}
   m_BodyType: 0
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -2128,7 +2128,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 550088684}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.10000038, y: 5.28, z: 0}
+  m_LocalPosition: {x: 0.25999975, y: 6.67, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1921672039}
@@ -4012,7 +4012,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1323120690
 Transform:
   m_ObjectHideFlags: 0
@@ -4020,13 +4020,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1323120689}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 36.6, y: 2.4, z: 0}
-  m_LocalScale: {x: 73.99, y: 0.15, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0.08593687, w: 0.9963006}
+  m_LocalPosition: {x: 19, y: 9.2, z: 0}
+  m_LocalScale: {x: 73.99, y: 3.54, z: 1}
   m_Children: []
   m_Father: {fileID: 75355565}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -9.860001}
 --- !u!50 &1323120691
 Rigidbody2D:
   serializedVersion: 4
@@ -6790,6 +6790,11 @@ PrefabInstance:
       propertyPath: m_Points.Array.data[0].y
       value: -0.45
       objectReference: {fileID: 0}
+    - target: {fileID: 2194637458701904114, guid: b53063c92cee4cb4b9e759b313bdd680,
+        type: 3}
+      propertyPath: camSize
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 2194637458701904115, guid: b53063c92cee4cb4b9e759b313bdd680,
         type: 3}
       propertyPath: target
@@ -6980,7 +6985,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7610508564178906070}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.10000038, y: 2.16, z: 0}
+  m_LocalPosition: {x: 0.26, y: 3.55, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 707555670}
@@ -7017,7 +7022,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   id: -1
-  attribute: {fileID: 11400000, guid: 01595159d917c6049baa91dd5572bd8e, type: 2}
+  attribute: {fileID: 11400000, guid: 587d52818af7ef546a584df9afcb716a, type: 2}
 --- !u!1 &7610508564178906070
 GameObject:
   m_ObjectHideFlags: 0
@@ -7098,7 +7103,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 7610508564178906070}
   m_BodyType: 0
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -7178,7 +7183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!58 &7610508565030358292
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -7203,7 +7208,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7610508565030358291}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.3, y: 4.5969048, z: 0}
+  m_LocalPosition: {x: 0.09999943, y: 1.6469047, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1437063662}
@@ -7224,7 +7229,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   id: -1
-  attribute: {fileID: 11400000, guid: 01595159d917c6049baa91dd5572bd8e, type: 2}
+  attribute: {fileID: 11400000, guid: 587d52818af7ef546a584df9afcb716a, type: 2}
 --- !u!50 &7610508565030358297
 Rigidbody2D:
   serializedVersion: 4
@@ -7235,7 +7240,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 7610508565030358291}
   m_BodyType: 0
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0

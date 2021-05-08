@@ -28,7 +28,13 @@ public class IceAttribute : ScriptableObject
     [HideInInspector]
     public bool runSim;
     [HideInInspector]
-    public Transform stickyParent;
+    public Transform stickyParent;//Ursprungseis/-boden der Gruppe
+    [HideInInspector]
+    public Vector2 stickyCenter;//ungefähres Massezentrum der Gruppe
+    [HideInInspector]
+    public int stickyCount;//Anzahl der eiskugeln in der Gruppe
+    [HideInInspector]
+    public float stickyRotation;//Rotation per Tick in Radianten
 
     [Header("Visuelle Attribute")]
     [Tooltip("Name des Eis, wenn blank, dann gleich dem Name des Objektes")]
@@ -117,6 +123,9 @@ public class IceAttribute : ScriptableObject
         instability = attribute.instability;
         upForce = attribute.upForce;
         dropSpeed = attribute.dropSpeed;
+
+        stickyCount = 1;
+        stickyRotation = 0;
     }
 
     public void Combine(IceAttribute attribute)
@@ -182,6 +191,16 @@ public class IceAttribute : ScriptableObject
         pAttribute.velocity /= speed;
         pAttribute.Set_vel();
         pAttribute.jumpPower /= jumpForce;
+    }
+
+    public void ResetIce()
+    {
+        runSim = true;
+        stickyParent = null;
+        stickyCount = 1;
+        stickyCenter = Vector2.zero;
+        stickyRotation = 0;
+        onGround = false;
     }
 
     [ExecuteInEditMode]

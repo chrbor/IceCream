@@ -12,8 +12,9 @@ public class Cone2Script : MonoBehaviour, ICone
     public static Vector4 rotMatrix_cone;
     float diff_rot_cone;
 
-    public float helpForce = 40;
+    public bool run;
 
+    public float helpForce = 40;
     public Vector2 coneGravity;
     public Vector2 tilt_move;
 
@@ -22,11 +23,12 @@ public class Cone2Script : MonoBehaviour, ICone
 
     [HideInInspector]
     public List<ICone> iceTower = new List<ICone>();
-    public bool run;
 
     public float fillTime;
     [HideInInspector]
     public float fillTime_real;
+
+    public float camSize;
 
     private void Awake()
     {

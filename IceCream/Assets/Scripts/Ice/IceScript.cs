@@ -117,7 +117,11 @@ public class IceScript : MonoBehaviour, ICone
         if (_attribute.stickyParent != null)
         {
             //block_ice_enter = true;
-            while (!_attribute.runSim) { transform.position = posInCone + (Vector2)_attribute.stickyParent.position; yield return new WaitForFixedUpdate(); }
+            while (!_attribute.runSim)
+            {
+                transform.position = posInCone + (Vector2)_attribute.stickyParent.position;
+                yield return new WaitForFixedUpdate();
+            }
             _attribute.stickyParent = null;
             StartCoroutine(RunSim());
             yield break;
@@ -139,26 +143,34 @@ public class IceScript : MonoBehaviour, ICone
             id = -1;
             _attribute.RemoveFromCone();
             cScript.offset = new Vector2(0, --coneIceCount * .3f);
-            Camera.main.orthographicSize = 6 + .3f * coneIceCount;
+            Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
             fillingSpace = false;//beende evtl filling
             StartCoroutine(PushIceOut());
             return;
         }
         else//Eis fliegt durch die Gegend
         {
-            if (block_ice_enter) return;//ist in der nicht-berühr-Phase
+            if (block_ice_enter || _layer == 13) return;//ist in der nicht-berühr-Phase
 
-            if (_layer != 8 && _layer != 12 || other.tag == "Col") //Weder Eis noch Cone getroffen
+            if (_layer != 8 && _layer != 12) //Weder Eis noch Cone getroffen
             {
                 //Hier den Code einfügen, der beschreibt, was passiert, wenn fliegendes Eis in Kontakt mit der Umgebung kommt: 
 
                 //Sticking on ground:
-                if (_attribute.sticky)
+                if (_attribute.sticky && !_attribute.onGround)
                 {
-                    Debug.Log(name + " hits ground");
-                    OrderStickyIce(other.transform);
                     _attribute.onGround = true;
+                    OrderStickyIce(other.transform, GetHighestIce(this));
+                    /*
+                    Debug.Log(name + " hits ground");
+                    Debug.Log("pos: " + transform.position + ", calcPos: " + (other.transform.position + (Vector3)posInCone));
+                    Debug.Log("posInCone: " + posInCone);
+                    Debug.Break();
+                    //*/
+                    return;
                 }
+                if (_attribute.stickyParent != null)
+                    GetHighestIce(this).Get_rb().velocity *= -1;//pls dont kill me XP
 
                 return;
             }
@@ -166,45 +178,131 @@ public class IceScript : MonoBehaviour, ICone
             ICone other_Ice = other.GetComponent<ICone>();
             if (other_Ice.GetID() < 0) //falls das getroffene Eis nicht auf der waffel ist
             {
-                //sticky:
-                if (other_Ice.Get_attribute().sticky && !_attribute.onGround && (_attribute.stickyParent == null || !_attribute.stickyParent.GetComponent<ICone>().Get_attribute().onGround))
-                {
-                    Debug.Log(name + " hits " + other.name);
-                    OrderStickyIce(other.transform);
 
-                    StartCoroutine(Set_sticky());
+                //sticky:
+                if(((_attribute.sticky)) && //!_attribute.onGround)) &&// || (other_Ice.Get_attribute().sticky && !other_Ice.Get_attribute().onGround)) && //Falls sticky und nicht auf Boden berührt Eis und
+                    ((_attribute.stickyParent == null) ||
+                    (_attribute.stickyParent != other_Ice.Get_attribute().stickyParent) //Origin ungleich other.Origin (gegen doppelkontakt)
+                    ))
+                {
+                    //Ermittle höchstes Eis:
+                    Transform myStickyParent = transform;
+                    ICone iceOrigin = GetHighestIce(this);
+                    ICone iceOrigin_other = GetHighestIce(other_Ice);
+                    if (iceOrigin == iceOrigin_other) return;//haben schon die gleiche Quelle
+                    if(iceOrigin.Get_attribute().onGround)//Wenn die ein am Boden klebendes Eis ist, dann wird das andere eis diesem zugeordnet 
+                    {
+                        OrderStickyIce(transform, iceOrigin_other);
+                        StartCoroutine(Set_sticky(iceOrigin_other.Get_attribute()));
+                        return;
+                    }
+                    //Debug.Log("origin: " + iceOrigin.Get_transform() + "\nother: " + other.transform);
+                    /*
+                    //Debug.Log("sticky pre-parent: " + _attribute.stickyParent);
+                    if (_attribute.stickyParent != null)
+                    {
+                        Debug.Log("parent: " + _attribute.stickyParent + ", parent-origin: " + _attribute.stickyParent.GetComponent<ICone>().Get_attribute().stickyParent
+                             + "\nother: " + other.transform);
+                        Debug.Log("connect: " + ((_attribute.stickyParent != other.transform) && (_attribute.stickyParent.GetComponent<ICone>().Get_attribute().stickyParent != other.transform)));
+                    }
+                    //*/
+                    OrderStickyIce(other.transform, iceOrigin);
+                    /*
+                    Debug.Log(name + " hits " + other.name);
+                    //Debug.Log("other: " + other.transform.position + ", self: " + transform.position + "\ndiff: " + (transform.position - _attribute.stickyParent.position) + "posInCone: " + posInCone);
+                    Debug.Log("runSim of parent: " + _attribute.stickyParent.GetComponent<ICone>().Get_attribute().runSim);
+                    Debug.Log("sticky parent " + _attribute.stickyParent + " follows " + _attribute.stickyParent.GetComponent<ICone>().Get_attribute().stickyParent);
+                    //Debug.Log("is already paired to it: " + (_attribute.stickyParent == other.transform));
+                    Debug.Break();
+                    //*/
+                    StartCoroutine(Set_sticky(_attribute));
+                    return;
                 }
+                //*
+                //Bounce
+                if (!_attribute.sticky && !other_Ice.Get_attribute().sticky && other_Ice.Get_attribute().stickyParent != null && _attribute.stickyParent == null)
+                {
+                    Debug.Log(name + " bounced " + other.name);
+                    ICone iceOrigin = GetHighestIce(other_Ice);
+                    iceOrigin.Get_rb().velocity += rb.velocity;// / iceOrigin.Get_attribute().stickyCount;
+                }
+                //*/
                 return;
             }
 
             //Eis wird in den Turm integriert:
             //Gruppe lösen:
-            for (int i = transform.GetChild(0).childCount - 1; i >= 0; i--) { transform.GetChild(i).GetComponent<ICone>().Get_attribute().runSim = true; transform.GetChild(i).parent = null; }
+
             //Update den Turm:
             transform.parent = cone.transform;
             id = other_Ice.GetID()+1;
-            _attribute.runSim = true;
+            _attribute.ResetIce();
             _attribute.AddToCone();
             cScript.offset = new Vector2(0, ++coneIceCount * .3f);
-            Camera.main.orthographicSize = 6 + .3f * coneIceCount;
+            Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
             cone.iceTower.Insert(id, this);
-            cone.UpdateConeTower(id);  
+            cone.UpdateConeTower(id);
+            StartCoroutine(TriggerBlink());//Damit Gruppen aufgelöst werden können
         }
     }
-    void OrderStickyIce(Transform t_other)
+    IEnumerator TriggerBlink()
+    {
+        GetComponent<Collider2D>().enabled = false;
+        yield return new WaitForFixedUpdate();
+        GetComponent<Collider2D>().enabled = true;
+        yield break;
+    }
+    void OrderStickyIce(Transform t_other, ICone stickyOrigin)
     {
         _attribute.runSim = false;
         Transform myStickyParent = transform;
-        ICone stickyIce = this;
-        while (true)
+
+        ICone otherIce = t_other.GetComponent<ICone>();
+        IceAttribute stickyOrigin_Attribute = stickyOrigin.Get_attribute();
+
+
+        stickyOrigin_Attribute.stickyParent = t_other;
+        stickyOrigin.Set_posInCone(stickyOrigin.Get_transform().position - t_other.position);
+        stickyOrigin_Attribute.onGround |= otherIce == null || otherIce.Get_attribute().onGround;
+        stickyOrigin_Attribute.runSim &= !stickyOrigin_Attribute.onGround && stickyOrigin == this;//false;
+        if (stickyOrigin_Attribute.onGround) return;
+
+
+        //Setze Impuls und entsprechend der Position zum Zentrum und setze anschließend das Zentrum neu:
+        IceAttribute otherIce_Attribute = otherIce.Get_attribute();
+
+        //Geschwindigkeit und Dreh-impuls:
+        Vector2 diff = ((Vector2)(otherIce.Get_transform().position - stickyOrigin.Get_transform().position)).normalized;
+        Vector2 velocity = otherIce.Get_rb().velocity - stickyOrigin.Get_rb().velocity;
+        //Debug.Log("diff_vel: " + velocity + "\nother_vel: " + otherIce.Get_rb().velocity + ", vel: " + stickyOrigin.Get_rb().velocity);
+
+        float diff_angle = Mathf.Atan2(velocity.y, velocity.x) - Mathf.Atan2(diff.y, diff.x);
+        float vel_mag = stickyOrigin.Get_rb().velocity.magnitude;
+        float countFactor = stickyOrigin_Attribute.stickyCount / (float)(stickyOrigin_Attribute.stickyCount + otherIce_Attribute.stickyCount);
+        float otherCountFactor = 1 - countFactor;
+
+        t_other.GetComponent<ICone>().Get_rb().velocity = t_other.GetComponent<ICone>().Get_rb().velocity * otherCountFactor - diff * vel_mag * Mathf.Cos(diff_angle) * countFactor;
+        //otherIce_Attribute.stickyRotation += Mathf.Sin(diff_angle) * vel_mag * countFactor * 0.05f;//Drehimpuls
+
+        //Update des Zentrums:
+        otherIce_Attribute.stickyCenter = otherIce_Attribute.stickyCenter * otherCountFactor + stickyOrigin_Attribute.stickyCenter * countFactor;
+        otherIce_Attribute.stickyCount += stickyOrigin_Attribute.stickyCount;
+    }
+    ICone GetHighestIce(ICone startIce)
+    {
+        Transform myStickyParent = transform;
+        ICone stickyIce = startIce;
+        int x;
+        for (x = 0; x < 20; x++)
         {
             if (stickyIce.Get_attribute().stickyParent == null) break;
             myStickyParent = stickyIce.Get_attribute().stickyParent;
             if (myStickyParent.GetComponent<ICone>() == null) break;
             stickyIce = myStickyParent.GetComponent<ICone>();
         }
-        stickyIce.Get_attribute().stickyParent = t_other;
-        stickyIce.Set_posInCone(stickyIce.Get_transform().position - t_other.position);
+        if (x == 20) Debug.Log("Error: overload (no runback)");
+
+        return stickyIce;
     }
 
     bool block_ice_enter = false;
@@ -234,7 +332,7 @@ public class IceScript : MonoBehaviour, ICone
         id = -1;
         _attribute.RemoveFromCone();
         cScript.offset = new Vector2(0, --coneIceCount * .3f);
-        Camera.main.orthographicSize = 6 + .3f * coneIceCount;
+        Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
         rb.velocity = cone.rb.velocity + (rb.position - prev.Get_rb().position).normalized * _attribute.shootPower;
         transform.parent = null;
 
@@ -274,10 +372,11 @@ public class IceScript : MonoBehaviour, ICone
         fillOverwrite = false;
         yield break;
     }
-    IEnumerator Set_sticky()
+    IEnumerator Set_sticky(IceAttribute attribute)
     {
-        _attribute.sticky = false;
+        bool isSticky = attribute.sticky;
+        attribute.sticky = false;
         yield return new WaitForFixedUpdate();
-        _attribute.sticky = true;
+        attribute.sticky = isSticky;
     }
 }
