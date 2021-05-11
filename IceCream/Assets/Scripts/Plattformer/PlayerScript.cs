@@ -81,19 +81,25 @@ public class PlayerScript : MonoBehaviour
         //anim.SetBool("moving", isMoving && !pauseMove);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    int holdHeight;
+    float y_hold;
+    private void OnCollisionEnter2D(Collision2D other)
     {
         jumpReady = true;
+
+        //if (other.gameObject.layer == 13) { holdHeight++; y_hold = transform.position.y; } 
     }
     /*
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionStay2D(Collision2D other)
     {
-        pMove.onGround = true;
+        if (holdHeight <= 0 || other.gameObject.layer != 13) return;//falls nicht ice_col dann return
+        transform.position = new Vector3(transform.position.x, y_hold);
+        IceScript ice = other.gameObject.GetComponent<IceScript>();
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
+    private void OnCollisionExit2D(Collision2D other)
     {
-        pMove.onGround = false;
+        if (other.gameObject.layer == 13) holdHeight--;
     }
     //*/
 }

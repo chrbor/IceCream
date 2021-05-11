@@ -81,6 +81,8 @@ public class IceAttribute : ScriptableObject
     [Tooltip("Das Material, dass bestimmt, wie sich das Eis verhält, wenn es durch die Gegend fliegt")]
     public PhysicsMaterial2D material;
 
+    public bool reflecting { get; private set; }
+
     [Header("Passiv (Effekte auf den Spieler in %):")]
     [Tooltip("Ändert wie schnell der Spieler sich bewegen kann")]
     public float speed;
@@ -178,7 +180,6 @@ public class IceAttribute : ScriptableObject
         pAttribute.Set_vel();
         pAttribute.jumpPower *= jumpForce;
     }
-
     public void RemoveFromCone()
     {
         cone.helpForce /= upForce;
@@ -192,7 +193,6 @@ public class IceAttribute : ScriptableObject
         pAttribute.Set_vel();
         pAttribute.jumpPower /= jumpForce;
     }
-
     public void ResetIce()
     {
         runSim = true;
@@ -201,6 +201,14 @@ public class IceAttribute : ScriptableObject
         stickyCenter = Vector2.zero;
         stickyRotation = 0;
         onGround = false;
+    }
+
+    public IEnumerator SetReflectBlock()
+    {
+        reflecting = true;
+        yield return new WaitForSeconds(.1f);
+        reflecting = false;
+        yield break;
     }
 
     [ExecuteInEditMode]

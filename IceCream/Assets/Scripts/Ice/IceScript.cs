@@ -113,15 +113,18 @@ public class IceScript : MonoBehaviour, ICone
             yield return new WaitForFixedUpdate();
         }
 
-        //Am Boden Kleben Bleiben:
+        //Am Boden Kleben bleiben:
         if (_attribute.stickyParent != null)
         {
             //block_ice_enter = true;
-            while (!_attribute.runSim)
+            ICone parentIce = _attribute.stickyParent.GetComponent<ICone>();
+            while (_attribute.stickyParent != null && (parentIce == null || parentIce.GetID() < 0))
             {
                 transform.position = posInCone + (Vector2)_attribute.stickyParent.position;
                 yield return new WaitForFixedUpdate();
             }
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            _attribute.runSim = true;
             _attribute.stickyParent = null;
             StartCoroutine(RunSim());
             yield break;
@@ -156,11 +159,13 @@ public class IceScript : MonoBehaviour, ICone
             {
                 //Hier den Code einfügen, der beschreibt, was passiert, wenn fliegendes Eis in Kontakt mit der Umgebung kommt: 
 
+                ICone iceOrigin = GetHighestIce(this);
                 //Sticking on ground:
                 if (_attribute.sticky && !_attribute.onGround)
                 {
                     _attribute.onGround = true;
-                    OrderStickyIce(other.transform, GetHighestIce(this));
+                    rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                    OrderStickyIce(other.transform, iceOrigin);
                     /*
                     Debug.Log(name + " hits ground");
                     Debug.Log("pos: " + transform.position + ", calcPos: " + (other.transform.position + (Vector3)posInCone));
@@ -169,8 +174,11 @@ public class IceScript : MonoBehaviour, ICone
                     //*/
                     return;
                 }
-                if (_attribute.stickyParent != null)
-                    GetHighestIce(this).Get_rb().velocity *= -1;//pls dont kill me XP
+                if (!(_attribute.stickyParent == null || iceOrigin.Get_attribute().reflecting))
+                {
+                    StartCoroutine(iceOrigin.Get_attribute().SetReflectBlock());
+                    iceOrigin.Get_rb().velocity *= -1;//simple reflection (pls dont kill me XP)
+                }
 
                 return;
             }
@@ -190,8 +198,10 @@ public class IceScript : MonoBehaviour, ICone
                     ICone iceOrigin = GetHighestIce(this);
                     ICone iceOrigin_other = GetHighestIce(other_Ice);
                     if (iceOrigin == iceOrigin_other) return;//haben schon die gleiche Quelle
-                    if(iceOrigin.Get_attribute().onGround)//Wenn die ein am Boden klebendes Eis ist, dann wird das andere eis diesem zugeordnet 
+
+                    if (iceOrigin.Get_attribute().onGround)//Wenn die ein am Boden klebendes Eis ist, dann wird das andere eis diesem zugeordnet 
                     {
+                        iceOrigin_other.Get_rb().constraints = RigidbodyConstraints2D.FreezeAll;
                         OrderStickyIce(transform, iceOrigin_other);
                         StartCoroutine(Set_sticky(iceOrigin_other.Get_attribute()));
                         return;
@@ -206,6 +216,7 @@ public class IceScript : MonoBehaviour, ICone
                         Debug.Log("connect: " + ((_attribute.stickyParent != other.transform) && (_attribute.stickyParent.GetComponent<ICone>().Get_attribute().stickyParent != other.transform)));
                     }
                     //*/
+                    iceOrigin.Get_rb().constraints = RigidbodyConstraints2D.FreezeAll;
                     OrderStickyIce(other.transform, iceOrigin);
                     /*
                     Debug.Log(name + " hits " + other.name);
@@ -220,11 +231,22 @@ public class IceScript : MonoBehaviour, ICone
                 }
                 //*
                 //Bounce
-                if (!_attribute.sticky && !other_Ice.Get_attribute().sticky && other_Ice.Get_attribute().stickyParent != null && _attribute.stickyParent == null)
+                else if (!_attribute.sticky && !other_Ice.Get_attribute().sticky && other_Ice.Get_attribute().stickyParent != null && _attribute.stickyParent == null)
                 {
-                    Debug.Log(name + " bounced " + other.name);
                     ICone iceOrigin = GetHighestIce(other_Ice);
-                    iceOrigin.Get_rb().velocity += rb.velocity;// / iceOrigin.Get_attribute().stickyCount;
+                    if (iceOrigin.Get_attribute().onGround)
+                    {
+                        Vector2 diff = ((Vector2)(transform.position - other.transform.position)).normalized;
+                        rb.velocity = rb.velocity.magnitude * diff;
+                    }
+                    else
+                    {
+                        Debug.Log(name + " bounced " + other.name);
+                        Vector2 vel = iceOrigin.Get_rb().velocity;
+                        iceOrigin.Get_rb().velocity += rb.velocity;// / iceOrigin.Get_attribute().stickyCount;
+                        rb.velocity = vel;
+                        //rb.velocity = (vel * iceOrigin.Get_attribute().stickyCount + rb.velocity) / (iceOrigin.Get_attribute().stickyCount + 1);
+                    }
                 }
                 //*/
                 return;
@@ -234,6 +256,7 @@ public class IceScript : MonoBehaviour, ICone
             //Gruppe lösen:
 
             //Update den Turm:
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             transform.parent = cone.transform;
             id = other_Ice.GetID()+1;
             _attribute.ResetIce();
