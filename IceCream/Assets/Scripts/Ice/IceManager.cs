@@ -13,6 +13,7 @@ public class IceManager : MonoBehaviour
     public static int coneIceCount;
 
     public GameObject ice_prefab;
+    public GameObject explosionPrefab;
 
     public static event UnityAction ResetTouch, FireIce;
 

@@ -8,7 +8,7 @@ using static CameraScript;
 
 public class IceScript : MonoBehaviour, ICone
 {
-    Vector3 prevPos;
+    Vector2 prevVel;
     [HideInInspector]
     public Vector2 velocity;
     [HideInInspector]
@@ -21,6 +21,7 @@ public class IceScript : MonoBehaviour, ICone
     private Vector2 posInCone;
 
     private SpriteRenderer sprite;
+    private Material mat;
 
     public IceAttribute attribute;
     IceAttribute _attribute;
@@ -31,32 +32,38 @@ public class IceScript : MonoBehaviour, ICone
 
         //Init:
         rb = GetComponent<Rigidbody2D>();
-        prevPos = transform.position;
 
         //Setze alle Attribute:
-        _attribute = ScriptableObject.CreateInstance<IceAttribute>();
-        //Aktiv/Passiv:
-        _attribute.Set_Attribute(attribute);
-        transform.localScale = Vector3.one * _attribute.scale;
-        rb.mass = _attribute.mass;
-        rb.sharedMaterial = _attribute.material;
+        if(_attribute == null)
+        {
+            //Aktiv/Passiv:
+            Set_Attribute(attribute);
+            transform.localScale = Vector3.one * _attribute.scale;
+            rb.mass = _attribute.mass;
+            rb.sharedMaterial = _attribute.material;
+        }
+
         //Visuell:
         //name = _attribute.nameIce;
         sprite = GetComponent<SpriteRenderer>();
         sprite.sprite = _attribute.primSprite.sprite;
         sprite.sortingOrder = 1000;
+        mat = sprite.material;
 
         //Folgendes Segment sollte noch optimiert werden:
         //Lösche alte Texturen:
-        for (int i = transform.childCount - 1; i > 0; i--) Destroy(transform.GetChild(i).gameObject);
+        //for (int i = transform.GetChild(1).childCount - 1; i >= 0; i--) Destroy(transform.GetChild(1).GetChild(i).gameObject);
+        //Destroy(transform.GetChild(1).gameObject);
 
         //Generiere neue Texturen:
-        GameObject secObj;
+        GameObject secObj = new GameObject("secTex");
+        secObj.transform.parent = transform;
+        secObj.transform.localPosition = Vector3.zero;
         SpriteRenderer secSprite;
         for(int i = 0; i < _attribute.secSprites.Count;)
         {
             secObj = new GameObject("sec_" + i);
-            secObj.transform.parent = transform;
+            secObj.transform.parent = transform.GetChild(1);
             secObj.transform.localPosition = Vector3.zero;
             secSprite = secObj.AddComponent<SpriteRenderer>();
             secSprite.sprite = _attribute.secSprites[i].sprite;
@@ -65,6 +72,7 @@ public class IceScript : MonoBehaviour, ICone
         }
 
         StartCoroutine(RunSim());
+        StartCoroutine(UpdateLife());
     }
 
     private void OnDestroy()
@@ -72,15 +80,22 @@ public class IceScript : MonoBehaviour, ICone
         ResetTouch -= ResetTouchingCone;
     }
 
+
+
     //Accessor:
     public int GetID() => id;
     public void SetID(int _id)
     {
         id = _id;
         sprite.sortingOrder = -id * 1000;
-        for (int i = 1; i < transform.childCount; i++) transform.GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + i;
+        for (int i = 0; i < transform.GetChild(1).childCount; i++) transform.GetChild(1).GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + i;
     }
     public IceAttribute Get_attribute() => _attribute;
+    public void Set_Attribute(IceAttribute attribute)
+    {
+        _attribute = ScriptableObject.CreateInstance<IceAttribute>();
+        _attribute.Set_Attribute(attribute);
+    }
     public Rigidbody2D Get_rb() => rb;
     public Vector2 Get_posInCone() => posInCone;
     public void Set_posInCone(Vector2 position) => posInCone = position;
@@ -109,7 +124,7 @@ public class IceScript : MonoBehaviour, ICone
             else
                 rb.velocity += iceGravity;
             
-            prevPos = transform.position;
+            prevVel = rb.velocity;
             yield return new WaitForFixedUpdate();
         }
 
@@ -130,6 +145,88 @@ public class IceScript : MonoBehaviour, ICone
             yield break;
         }
 
+        yield break;
+    }
+    IEnumerator UpdateLife()
+    {
+        float timeCount;
+        float timeGoal;
+
+        while(_attribute.life_current > 0)
+        {
+            yield return new WaitUntil(() => id < 0);
+            while (id < 0 && _attribute.life_current > 0)
+            {
+                mat.SetInt("_Blink", 0);
+                transform.GetChild(1).gameObject.SetActive(true);
+
+                timeCount = 0;
+                timeGoal = _attribute.life_current * .2f;
+                while (_attribute.life_current > 0 && id < 0 && (timeCount < timeGoal || _attribute.life_current > 10))
+                {
+                    timeCount += Time.fixedDeltaTime;
+                    _attribute.life_current -= Time.fixedDeltaTime;
+                    yield return new WaitForFixedUpdate();
+                }
+
+                mat.SetInt("_Blink", 1);
+                transform.GetChild(1).gameObject.SetActive(false);
+
+                timeCount = 0;
+                timeGoal = _attribute.life_current * .025f;
+                while (_attribute.life_current > 0 && id < 0 && timeCount < timeGoal)
+                {
+                    timeCount += Time.fixedDeltaTime;
+                    _attribute.life_current -= Time.fixedDeltaTime;
+                    yield return new WaitForFixedUpdate();
+                }
+            }
+
+            mat.SetInt("_Blink", 0);
+            transform.GetChild(1).gameObject.SetActive(true);
+        }
+
+        //Explosion:
+        GameObject explsn = null;
+        if(_attribute.explosionRange > 0)
+        {
+            explsn = Instantiate(iceManager.explosionPrefab, transform.position, Quaternion.identity);
+            explsn.transform.localScale = Vector3.one * _attribute.explosionRange * transform.localScale.x;
+            explsn.GetComponent<ExplosionScript>().exclusions.Add(gameObject);
+        }
+
+        //Split:
+        if(_attribute.splitCount > 0)
+        {
+            _attribute.life_current = _attribute.life;
+            _attribute.splitCount--;
+            _attribute.scale *= .75f;
+            _attribute.mass *= .75f;
+            transform.localScale *= .75f;
+            rb.mass = _attribute.mass;
+
+            IceScript splitIce = Instantiate(gameObject).GetComponent<IceScript>();
+            splitIce.Set_Attribute(_attribute);
+            splitIce.Get_attribute().ResetIce();
+            rb.velocity = -prevVel;
+
+            if (explsn != null) explsn.GetComponent<ExplosionScript>().exclusions.Add(splitIce.gameObject);
+
+            Rigidbody2D split_rb = splitIce.GetComponent<Rigidbody2D>();
+            split_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+            split_rb.velocity = prevVel;
+            splitIce.gameObject.layer = 0;
+            transform.GetChild(0).gameObject.SetActive(false);
+            yield return new WaitForSeconds(.2f);
+            transform.GetChild(0).gameObject.SetActive(true);
+            splitIce.gameObject.layer = 8;
+
+
+            StartCoroutine(UpdateLife());
+            yield break;
+        }
+
+        Destroy(gameObject);
         yield break;
     }
 
@@ -180,6 +277,7 @@ public class IceScript : MonoBehaviour, ICone
                     iceOrigin.Get_rb().velocity *= -1;//simple reflection (pls dont kill me XP)
                 }
 
+                _attribute.life_current--;
                 return;
             }
 

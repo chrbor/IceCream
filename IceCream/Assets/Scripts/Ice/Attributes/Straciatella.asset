@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35632478c96cdb6449cc7a990872fa00, type: 3}
   m_Name: Straciatella
   m_EditorClassIdentifier: 
+  runSim: 0
+  stickyParent: {fileID: 0}
+  stickyCenter: {x: 0, y: 0}
+  stickyCount: 0
+  stickyRotation: 0
   nameIce: 
   primSprite:
     sprite: {fileID: 21300000, guid: 4b7fbf13094735941b678e3d3bb079a1, type: 3}
@@ -27,12 +32,13 @@ MonoBehaviour:
   scale: 1
   mass: 1
   shootPower: 12
-  life: 5
+  life: 10
+  life_current: 0
   explosionRange: 0
   isMelange: 0
   sticky: 0
-  sticksOnGround: 0
-  reactOnImpact: 1
+  onGround: 0
+  reactOnImpact: 0
   growing: 0
   endScale: 0
   splitCount: 1

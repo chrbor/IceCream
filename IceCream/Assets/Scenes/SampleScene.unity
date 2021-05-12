@@ -506,7 +506,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -783,7 +783,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -920,7 +920,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1009,7 +1009,7 @@ GameObject:
   - component: {fileID: 191135703}
   - component: {fileID: 191135704}
   m_Layer: 13
-  m_Name: GameObject
+  m_Name: IceCol
   m_TagString: Col
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1196,7 +1196,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2053,7 +2053,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
   id: -1
-  attribute: {fileID: 11400000, guid: 01595159d917c6049baa91dd5572bd8e, type: 2}
+  attribute: {fileID: 11400000, guid: 174c868bda7065e46ad0b4d0ded732aa, type: 2}
 --- !u!58 &550088687
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -2088,7 +2088,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2412,7 +2412,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2470,7 +2470,7 @@ GameObject:
   - component: {fileID: 707555670}
   - component: {fileID: 707555671}
   m_Layer: 13
-  m_Name: GameObject
+  m_Name: IceCol
   m_TagString: Col
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2669,7 +2669,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3167,7 +3167,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gravity: {x: 0, y: -10}
-  ice_prefab: {fileID: 0}
+  ice_prefab: {fileID: 4034442334606136485, guid: 47ce45cd267a84a40b2229141d721638,
+    type: 3}
+  explosionPrefab: {fileID: 12845666555388705, guid: aa917a4df4e62c344ba362d8513e39ec,
+    type: 3}
 --- !u!114 &951834845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3452,7 +3455,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3742,7 +3745,7 @@ GameObject:
   - component: {fileID: 1233849760}
   - component: {fileID: 1233849761}
   m_Layer: 13
-  m_Name: GameObject
+  m_Name: IceCol
   m_TagString: Col
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4389,7 +4392,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4494,7 +4497,7 @@ GameObject:
   - component: {fileID: 1437063662}
   - component: {fileID: 1437063663}
   m_Layer: 13
-  m_Name: GameObject
+  m_Name: IceCol
   m_TagString: Col
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4620,7 +4623,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4757,7 +4760,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6040,7 +6043,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6098,7 +6101,7 @@ GameObject:
   - component: {fileID: 1921672039}
   - component: {fileID: 1921672040}
   m_Layer: 13
-  m_Name: GameObject
+  m_Name: IceCol
   m_TagString: Col
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6901,12 +6904,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4034442334606136480, guid: 47ce45cd267a84a40b2229141d721638,
-        type: 3}
-      propertyPath: attribute
-      value: 
-      objectReference: {fileID: 11400000, guid: 01595159d917c6049baa91dd5572bd8e,
-        type: 2}
     - target: {fileID: 4034442334606136483, guid: 47ce45cd267a84a40b2229141d721638,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -6962,21 +6959,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4034442334606136484, guid: 47ce45cd267a84a40b2229141d721638,
-        type: 3}
-      propertyPath: m_Color.r
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4034442334606136484, guid: 47ce45cd267a84a40b2229141d721638,
-        type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4034442334606136484, guid: 47ce45cd267a84a40b2229141d721638,
-        type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4034442334606136485, guid: 47ce45cd267a84a40b2229141d721638,
         type: 3}
       propertyPath: m_Name
@@ -6986,11 +6968,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6800649679505846473, guid: 47ce45cd267a84a40b2229141d721638,
-        type: 3}
-      propertyPath: m_Name
-      value: IceCol
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 47ce45cd267a84a40b2229141d721638, type: 3}
@@ -7078,7 +7055,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7149,7 +7126,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7332,7 +7309,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a36d18516cfb03b49a862c429bf173dc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

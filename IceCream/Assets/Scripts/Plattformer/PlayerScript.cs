@@ -41,6 +41,9 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        //Vel_Damping:
+        rb.velocity *= Mathf.Abs(rb.velocity.x) > 0.1f ? new Vector2(.9f, 1) : Vector2.up;
+
         //Feuer Eis:
         if (Input.touchCount > 0 && !prevTapp) IceManager.CallFireIce();
         prevTapp = Input.touchCount > 0;

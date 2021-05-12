@@ -60,6 +60,8 @@ public class IceAttribute : ScriptableObject
     public float shootPower;
     [Tooltip("Bestimmt, wie oft das Eis auf den Boden fallen oder wie lange durch die Luft fliegen kann")]
     public float life;
+    [HideInInspector]
+    public float life_current;
     [Tooltip("Umkreis, in den das Eis explodiert")]
     public float explosionRange;
     [Tooltip("Wenn wahr, dann wird diese Kugel mit den zwei oberen Eiskugeln kombiniert")]
@@ -109,6 +111,7 @@ public class IceAttribute : ScriptableObject
         mass = attribute.mass;
         material = attribute.material;
         life = attribute.life;
+        life_current = life;
 
         shootPower = attribute.shootPower;
         explosionRange = attribute.explosionRange;
@@ -153,6 +156,7 @@ public class IceAttribute : ScriptableObject
         sticky |= attribute.sticky;
         reactOnImpact |= attribute.reactOnImpact;
         growing += attribute.growing;
+        endScale = (endScale + attribute.endScale) / 1.5f;
 
         PhysicsMaterial2D tmp = new PhysicsMaterial2D("combo_mat");
         tmp.bounciness = (material.bounciness + attribute.material.bounciness) / 2;
@@ -201,6 +205,7 @@ public class IceAttribute : ScriptableObject
         stickyCenter = Vector2.zero;
         stickyRotation = 0;
         onGround = false;
+        life_current = life;
     }
 
     public IEnumerator SetReflectBlock()
