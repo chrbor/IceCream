@@ -149,13 +149,13 @@ public class IceAttribute : ScriptableObject
         //Aktiv:
         scale = (scale + attribute.scale) / 1.5f;
         mass = (mass + attribute.mass) / 1.5f;
-        life = life + attribute.life;
+        life = (life + attribute.life) / 2.25f;
 
         shootPower = (shootPower + attribute.shootPower) / 1.5f;
         explosionRange = (explosionRange + attribute.explosionRange) / 1.25f;
         sticky |= attribute.sticky;
         reactOnImpact |= attribute.reactOnImpact;
-        growing += attribute.growing;
+        growing = (growing + attribute.growing) / 1.5f;
         endScale = (endScale + attribute.endScale) / 1.5f;
 
         PhysicsMaterial2D tmp = new PhysicsMaterial2D("combo_mat");

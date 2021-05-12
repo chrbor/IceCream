@@ -25,6 +25,7 @@ public class IceScript : MonoBehaviour, ICone
 
     public IceAttribute attribute;
     IceAttribute _attribute;
+    private bool touchingGround;
 
     private void Start()
     {
@@ -81,7 +82,6 @@ public class IceScript : MonoBehaviour, ICone
     }
 
 
-
     //Accessor:
     public int GetID() => id;
     public void SetID(int _id)
@@ -122,7 +122,13 @@ public class IceScript : MonoBehaviour, ICone
                 if(!fillingSpace) virtPosInCone = posInCone;
             }
             else
+            {
+                //Laufende Effekte, wenn fliegend:
+                //Gravity:
                 rb.velocity += iceGravity;
+
+                if (!_attribute.reactOnImpact) UpdateContinousAttributes();
+            }
             
             prevVel = rb.velocity;
             yield return new WaitForFixedUpdate();
@@ -136,6 +142,7 @@ public class IceScript : MonoBehaviour, ICone
             while (_attribute.stickyParent != null && (parentIce == null || parentIce.GetID() < 0))
             {
                 transform.position = posInCone + (Vector2)_attribute.stickyParent.position;
+                if (!_attribute.reactOnImpact) UpdateContinousAttributes();
                 yield return new WaitForFixedUpdate();
             }
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -180,6 +187,11 @@ public class IceScript : MonoBehaviour, ICone
                     _attribute.life_current -= Time.fixedDeltaTime;
                     yield return new WaitForFixedUpdate();
                 }
+
+                //Reagiere nur bei Lebensabzug:
+                GetComponent<Collider2D>().GetContacts(new List<Collider2D>());
+                if (_attribute.reactOnImpact && _attribute.life_current > 0 && _attribute.life_current < 1 && !touchingGround) _attribute.life_current = .5f;
+                touchingGround = false;
             }
 
             mat.SetInt("_Blink", 0);
@@ -215,12 +227,7 @@ public class IceScript : MonoBehaviour, ICone
             Rigidbody2D split_rb = splitIce.GetComponent<Rigidbody2D>();
             split_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             split_rb.velocity = prevVel;
-            splitIce.gameObject.layer = 0;
-            transform.GetChild(0).gameObject.SetActive(false);
-            yield return new WaitForSeconds(.2f);
-            transform.GetChild(0).gameObject.SetActive(true);
-            splitIce.gameObject.layer = 8;
-
+            iceManager.SplitIgnore(splitIce.gameObject, transform.GetChild(0).gameObject);
 
             StartCoroutine(UpdateLife());
             yield break;
@@ -250,14 +257,59 @@ public class IceScript : MonoBehaviour, ICone
         }
         else//Eis fliegt durch die Gegend
         {
-            if (block_ice_enter || _layer == 13) return;//ist in der nicht-berühr-Phase
+            if (block_ice_enter || _layer == 13 || _layer == 14) return;//ist in der nicht-berühr-Phase oder von der Explosion getroffen
 
             if (_layer != 8 && _layer != 12) //Weder Eis noch Cone getroffen
             {
                 //Hier den Code einfügen, der beschreibt, was passiert, wenn fliegendes Eis in Kontakt mit der Umgebung kommt: 
 
-                ICone iceOrigin = GetHighestIce(this);
+                if (_attribute.reactOnImpact)
+                {
+                    if (_attribute.life_current > 1)
+                    {
+                        //Growth
+                        if (_attribute.growing != 0 && Mathf.Sign(_attribute.growing) == Mathf.Sign(_attribute.endScale - transform.localScale.x))
+                        {
+                            _attribute.scale += _attribute.growing * 50;
+                            transform.localScale = Vector3.one * _attribute.scale;
+                        }
+                        //Explosion:
+                        GameObject explsn = null;
+                        if (_attribute.explosionRange > 0)
+                        {
+                            explsn = Instantiate(iceManager.explosionPrefab, transform.position, Quaternion.identity);
+                            explsn.transform.localScale = Vector3.one * _attribute.explosionRange * transform.localScale.x * .5f;
+                            explsn.GetComponent<ExplosionScript>().exclusions.Add(gameObject);
+                        }
+                        //Split:
+                        if (_attribute.splitCount > 0)
+                        {
+                            _attribute.life_current = _attribute.life;
+
+                            IceScript splitIce = Instantiate(gameObject).GetComponent<IceScript>();
+                            splitIce.Set_Attribute(_attribute);
+                            splitIce.Get_attribute().ResetIce();
+                            rb.velocity = -prevVel;
+
+                            _attribute.reactOnImpact = false;
+                            _attribute.splitCount--;
+                            _attribute.scale *= .75f;
+                            _attribute.mass *= .75f;
+                            transform.localScale *= .75f;
+                            rb.mass = _attribute.mass;
+
+                            if (explsn != null) explsn.GetComponent<ExplosionScript>().exclusions.Add(splitIce.gameObject);
+
+                            Rigidbody2D split_rb = splitIce.GetComponent<Rigidbody2D>();
+                            split_rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+                            split_rb.velocity = prevVel;
+                            iceManager.SplitIgnore(splitIce.gameObject, transform.GetChild(0).gameObject);
+                        }
+                    }
+                }
+
                 //Sticking on ground:
+                ICone iceOrigin = GetHighestIce(this);
                 if (_attribute.sticky && !_attribute.onGround)
                 {
                     _attribute.onGround = true;
@@ -271,6 +323,7 @@ public class IceScript : MonoBehaviour, ICone
                     //*/
                     return;
                 }
+                //Ground- Bounce einer Gruppe:
                 if (!(_attribute.stickyParent == null || iceOrigin.Get_attribute().reflecting))
                 {
                     StartCoroutine(iceOrigin.Get_attribute().SetReflectBlock());
@@ -366,12 +419,22 @@ public class IceScript : MonoBehaviour, ICone
             StartCoroutine(TriggerBlink());//Damit Gruppen aufgelöst werden können
         }
     }
+    private void OnTriggerStay2D(Collider2D other) { touchingGround |= other.gameObject.layer == 11; }
     IEnumerator TriggerBlink()
     {
         GetComponent<Collider2D>().enabled = false;
         yield return new WaitForFixedUpdate();
         GetComponent<Collider2D>().enabled = true;
         yield break;
+    }
+    void UpdateContinousAttributes()
+    {
+        //Growth:
+        if (_attribute.growing != 0 && Mathf.Sign(_attribute.growing) == Mathf.Sign(_attribute.endScale - transform.localScale.x))
+        {
+            _attribute.scale += _attribute.growing;
+            transform.localScale = Vector3.one * _attribute.scale;
+        }
     }
     void OrderStickyIce(Transform t_other, ICone stickyOrigin)
     {
@@ -427,7 +490,7 @@ public class IceScript : MonoBehaviour, ICone
     }
 
     bool block_ice_enter = false;
-    int contactMask = (1 << 10) | (1 << 11) | (1 << 8);//Kontakt nur mit Obstacles, Ground und Eis
+    //int contactMask = (1 << 10) | (1 << 11) | (1 << 8);//Kontakt nur mit Obstacles, Ground und Eis
     public IEnumerator PushIceOut()
     {
         block_ice_enter = true;
@@ -443,7 +506,8 @@ public class IceScript : MonoBehaviour, ICone
 
         //Warte, bis die Eiskugel nichts mehr berührt:
         gameObject.layer = 13;//Ice_col
-        do { yield return new WaitForSeconds(.1f); } while (Physics2D.CircleCast(transform.position, transform.localScale.x/2, Vector2.up, 666/*Muhahahaha!!!*/, contactMask).collider != null);
+        //do { yield return new WaitForSeconds(.1f); } while (Physics2D.CircleCast(transform.position, transform.localScale.x/2, Vector2.up, 666/*Muhahahaha!!!*/, contactMask).collider != null);
+        yield return new WaitForSeconds(.2f);
         gameObject.layer = 8;//Ice
         block_ice_enter = false;
         yield break;

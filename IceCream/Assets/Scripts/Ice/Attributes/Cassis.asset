@@ -32,13 +32,13 @@ MonoBehaviour:
   scale: 1.05
   mass: 1
   shootPower: 14
-  life: 30
+  life: 15
   life_current: 0
   explosionRange: 0
   isMelange: 0
   sticky: 0
   onGround: 0
-  reactOnImpact: 0
+  reactOnImpact: 1
   growing: 0
   endScale: 0
   splitCount: 0

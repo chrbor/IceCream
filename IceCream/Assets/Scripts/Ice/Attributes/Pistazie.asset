@@ -31,8 +31,8 @@ MonoBehaviour:
   sec_dominance: 4
   scale: 1.2
   mass: 1
-  shootPower: 18
-  life: 35
+  shootPower: 20
+  life: 20
   life_current: 0
   explosionRange: 0
   isMelange: 0

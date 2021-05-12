@@ -32,14 +32,14 @@ MonoBehaviour:
   scale: 0.9
   mass: 1
   shootPower: 14
-  life: 30
+  life: 25
   life_current: 0
   explosionRange: 0
   isMelange: 0
   sticky: 0
   onGround: 0
   reactOnImpact: 0
-  growing: 0.01
+  growing: 0.005
   endScale: 3
   splitCount: 0
   material: {fileID: 6200000, guid: 97deec4a034a42d46a81eea81557abd3, type: 2}

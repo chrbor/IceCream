@@ -33,4 +33,18 @@ public class IceManager : MonoBehaviour
     {
 
     }
+
+    int contactMask = (1 << 8);//Kontakt nur mit Obstacles, Ground und Eis
+    public void SplitIgnore(GameObject splitIce, GameObject col_Object) => StartCoroutine(DoSplitIgnore(splitIce, col_Object));
+    IEnumerator DoSplitIgnore(GameObject splitIce, GameObject col_Object)
+    {
+        splitIce.layer = 0;
+        col_Object.SetActive(false);
+        //yield return new WaitForSeconds(.22f);
+        float count = 0;
+        do { count += .1f;  yield return new WaitForSeconds(.1f); } while (Physics2D.CircleCast(splitIce.transform.position, splitIce.transform.localScale.x/2, Vector2.up, 666/*Muhahahaha!!!*/, contactMask).collider != null && count < .5f);
+        if (col_Object != null) col_Object.SetActive(true);
+        if(splitIce != null) splitIce.layer = 8;
+        yield break;
+    }
 }

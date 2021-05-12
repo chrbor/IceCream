@@ -32,7 +32,7 @@ MonoBehaviour:
   scale: 0.95
   mass: 0.8
   shootPower: 14
-  life: 35
+  life: 25
   life_current: 0
   explosionRange: 0
   isMelange: 0
