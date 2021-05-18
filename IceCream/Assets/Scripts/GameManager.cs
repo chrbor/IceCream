@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,13 +11,30 @@ public class GameManager : MonoBehaviour
     public static bool pauseMove;
     public static bool runGame;
 
+    public static bool pauseGame;
+    public static bool pauseMiniGame;
+
     public static GameObject player;
     public static PlayerAttribute pAttribute;
+
+    public static Scene mainScene;
+    public static AudioListener mainListener;
+    public static GameObject mainCamera;
+    public static GameObject globalLight;
 
     // Start is called before the first frame update
     void Start()
     {
+        Screen.autorotateToLandscapeLeft = true;
+        Screen.autorotateToLandscapeRight = true;
+        Screen.autorotateToPortrait = false;
+        Screen.autorotateToPortraitUpsideDown = false;
+
         manager = this;
+        mainScene = SceneManager.GetActiveScene();
+        mainListener = Camera.main.GetComponent<AudioListener>();
+        mainCamera = Camera.main.gameObject;
+        globalLight = GameObject.FindGameObjectWithTag("light");
     }
 
     [System.Serializable]

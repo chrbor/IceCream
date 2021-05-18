@@ -20,7 +20,7 @@ public class PlayerScript : MonoBehaviour
     private bool isMoving;
     [HideInInspector]
     public float angle { get; private set; }
-    [HideInInspector]
+    //[HideInInspector]
     public float camSize = 8;
 
     bool prevTapp = false;

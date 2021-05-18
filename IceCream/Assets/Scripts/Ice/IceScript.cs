@@ -5,6 +5,7 @@ using static Helper;
 using static IceManager;
 using static Cone2Script;
 using static CameraScript;
+using static GameManager;
 
 public class IceScript : MonoBehaviour, ICone
 {
@@ -34,43 +35,12 @@ public class IceScript : MonoBehaviour, ICone
         //Init:
         rb = GetComponent<Rigidbody2D>();
 
-        //Setze alle Attribute:
-        if(_attribute == null)
-        {
-            //Aktiv/Passiv:
-            Set_Attribute(attribute);
-            transform.localScale = Vector3.one * _attribute.scale;
-            rb.mass = _attribute.mass;
-            rb.sharedMaterial = _attribute.material;
-        }
-
         //Visuell:
-        //name = _attribute.nameIce;
         sprite = GetComponent<SpriteRenderer>();
-        sprite.sprite = _attribute.primSprite.sprite;
         sprite.sortingOrder = 1000;
         mat = sprite.material;
 
-        //Folgendes Segment sollte noch optimiert werden:
-        //Lösche alte Texturen:
-        //for (int i = transform.GetChild(1).childCount - 1; i >= 0; i--) Destroy(transform.GetChild(1).GetChild(i).gameObject);
-        //Destroy(transform.GetChild(1).gameObject);
-
-        //Generiere neue Texturen:
-        GameObject secObj = new GameObject("secTex");
-        secObj.transform.parent = transform;
-        secObj.transform.localPosition = Vector3.zero;
-        SpriteRenderer secSprite;
-        for(int i = 0; i < _attribute.secSprites.Count;)
-        {
-            secObj = new GameObject("sec_" + i);
-            secObj.transform.parent = transform.GetChild(1);
-            secObj.transform.localPosition = Vector3.zero;
-            secSprite = secObj.AddComponent<SpriteRenderer>();
-            secSprite.sprite = _attribute.secSprites[i].sprite;
-            secSprite.sortingLayerName = "Ice";
-            secSprite.sortingOrder = sprite.sortingOrder + ++i;
-        }
+        ResetAttributes();
 
         StartCoroutine(RunSim());
         StartCoroutine(UpdateLife());
@@ -88,7 +58,8 @@ public class IceScript : MonoBehaviour, ICone
     {
         id = _id;
         sprite.sortingOrder = -id * 1000;
-        for (int i = 0; i < transform.GetChild(1).childCount; i++) transform.GetChild(1).GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + i;
+        Transform Ttex = transform.GetChild(transform.childCount - 1);
+        for (int i = 0; i < Ttex.childCount; i++) Ttex.GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + i;
     }
     public IceAttribute Get_attribute() => _attribute;
     public void Set_Attribute(IceAttribute attribute)
@@ -100,10 +71,45 @@ public class IceScript : MonoBehaviour, ICone
     public Vector2 Get_posInCone() => posInCone;
     public void Set_posInCone(Vector2 position) => posInCone = position;
     public void Set_prevIce(Rigidbody2D _prev) { prevIce = _prev; }
-    public Vector2 Get_virtPosInCone() => virtPosInCone;
+    //public Vector2 Get_virtPosInCone() => virtPosInCone;
+    //public void Set_virtPosInCone(Vector2 position) => virtPosInCone = position;
     public Transform Get_transform() => transform;
     public string Get_name() => name;
     public void ResetTouchingCone() { id = -1; transform.parent = null; prevIce = null; }
+    public void ResetAttributes()
+    {
+        //Setze alle Attribute:
+        if (_attribute == null) Set_Attribute(attribute);
+
+        name = _attribute.name;
+
+        //Aktiv/Passiv:            
+        transform.localScale = Vector3.one * _attribute.scale;
+        rb.mass = _attribute.mass;
+        rb.sharedMaterial = _attribute.material;
+
+        //Generiere neue Texturen:
+        sprite.sprite = _attribute.primSprite.sprite;
+
+        if(transform.childCount == 3) Destroy(transform.GetChild(2).gameObject);
+        Transform Ttex = new GameObject("secTex").transform;
+        Ttex.parent = transform;
+        Ttex.localPosition = Vector3.zero;
+        Ttex.localScale = Vector3.one;
+        SpriteRenderer secSprite;
+        GameObject secObj;
+        for (int i = 0; i < _attribute.secSprites.Count;)
+        {
+            secObj = new GameObject("sec_" + i);
+            secObj.transform.parent = Ttex;
+            secObj.transform.localPosition = Vector3.zero;
+            secObj.transform.localScale = Vector3.one;
+            secSprite = secObj.AddComponent<SpriteRenderer>();
+            secSprite.sprite = _attribute.secSprites[i].sprite;
+            secSprite.sortingLayerName = "Ice";
+            secSprite.sortingOrder = sprite.sortingOrder + ++i;
+        }
+    }
 
     IEnumerator RunSim()
     {
@@ -111,6 +117,8 @@ public class IceScript : MonoBehaviour, ICone
         _attribute.runSim = true;
         while (_attribute.runSim)
         {
+            if (pauseGame) yield return new WaitWhile(() => pauseGame);
+
             //Waffel-Physik:
             if (id > 0)
             {
@@ -119,7 +127,7 @@ public class IceScript : MonoBehaviour, ICone
                 while (Mathf.Abs(rot) > 180) rot -= 360 * Mathf.Sign(rot);
 
                 transform.localPosition = posInCone * (1 - Mathf.Abs(rot) / 360);
-                if(!fillingSpace) virtPosInCone = posInCone;
+                //if(!fillingSpace) virtPosInCone = posInCone;
             }
             else
             {
@@ -141,6 +149,8 @@ public class IceScript : MonoBehaviour, ICone
             ICone parentIce = _attribute.stickyParent.GetComponent<ICone>();
             while (_attribute.stickyParent != null && (parentIce == null || parentIce.GetID() < 0))
             {
+                if (pauseGame) yield return new WaitWhile(() => pauseGame);
+
                 transform.position = posInCone + (Vector2)_attribute.stickyParent.position;
                 if (!_attribute.reactOnImpact) UpdateContinousAttributes();
                 yield return new WaitForFixedUpdate();
@@ -165,19 +175,21 @@ public class IceScript : MonoBehaviour, ICone
             while (id < 0 && _attribute.life_current > 0)
             {
                 mat.SetInt("_Blink", 0);
-                transform.GetChild(1).gameObject.SetActive(true);
+                transform.GetChild(2).gameObject.SetActive(true);
 
                 timeCount = 0;
                 timeGoal = _attribute.life_current * .2f;
                 while (_attribute.life_current > 0 && id < 0 && (timeCount < timeGoal || _attribute.life_current > 10))
                 {
+                    if (pauseGame) yield return new WaitWhile(() => pauseGame);
+
                     timeCount += Time.fixedDeltaTime;
                     _attribute.life_current -= Time.fixedDeltaTime;
                     yield return new WaitForFixedUpdate();
                 }
 
                 mat.SetInt("_Blink", 1);
-                transform.GetChild(1).gameObject.SetActive(false);
+                transform.GetChild(2).gameObject.SetActive(false);
 
                 timeCount = 0;
                 timeGoal = _attribute.life_current * .025f;
@@ -245,7 +257,7 @@ public class IceScript : MonoBehaviour, ICone
             if (other.tag == "Col" || _layer == 8 || _layer == 12 || _layer == 13) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
 
             //Eis wird runtergeschubst:
-            Debug.Log(name + " leaving: posInCone: " + posInCone + ", virt: " + virtPosInCone);
+            Debug.Log(name + " leaving: posInCone: " + posInCone);
             cone.RemoveIce(id);
             id = -1;
             _attribute.RemoveFromCone();
@@ -404,12 +416,11 @@ public class IceScript : MonoBehaviour, ICone
             }
 
             //Eis wird in den Turm integriert:
-            //Gruppe lösen:
-
             //Update den Turm:
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
             transform.parent = cone.transform;
-            id = other_Ice.GetID()+1;
+            //id = other_Ice.GetID()+1;
+            SetID(other_Ice.GetID() + 1);
             _attribute.ResetIce();
             _attribute.AddToCone();
             cScript.offset = new Vector2(0, ++coneIceCount * .3f);
@@ -425,6 +436,7 @@ public class IceScript : MonoBehaviour, ICone
         GetComponent<Collider2D>().enabled = false;
         yield return new WaitForFixedUpdate();
         GetComponent<Collider2D>().enabled = true;
+        transform.GetChild(2).gameObject.SetActive(true);//idk wo der fehler liegt XP
         yield break;
     }
     void UpdateContinousAttributes()
@@ -528,32 +540,31 @@ public class IceScript : MonoBehaviour, ICone
     }
 
     bool fillingSpace, fillOverwrite;
-    Vector2 virtPosInCone;
+    Vector2 diffPosToAdd;
     public IEnumerator FillSpace(Vector2 _endPos)
     {
-        virtPosInCone = _endPos;
-
         //Überlagere vorherige Lückenfüller:
         if(fillingSpace)
         {
             fillOverwrite = true;
             yield return new WaitUntil(() => !fillOverwrite);
-            virtPosInCone = _endPos;
             //Debug.Log(name + " overwritten to: " + _endPos);
         }
         fillingSpace = true;
 
         //Lerp zur nächsten position
-        Vector2 startPos = posInCone;
-        Vector2 diffPos = virtPosInCone - startPos;
+        diffPosToAdd += _endPos - posInCone;
+        Vector2 diffPosStep = diffPosToAdd * cone.fillTime_real;
         for (float count = 0; count < 1 && !fillOverwrite && fillingSpace; count += cone.fillTime_real)
         {
-            posInCone = startPos + count * diffPos;
+            if (pauseGame) yield return new WaitWhile(() => pauseGame);
+            for (int i = id; i < cone.iceTower.Count; i++) cone.iceTower[i].Set_posInCone(cone.iceTower[i].Get_posInCone() + diffPosStep);
+            diffPosToAdd -= diffPosStep;
             yield return new WaitForFixedUpdate();
         }
         yield return new WaitForFixedUpdate();
         //Debug.Log(name + " stopped: overwrite: " + fillOverwrite + ", fillingSpace: " + fillingSpace + ", posInCone: " + posInCone + ", virt: " + virtPosInCone);
-        if (!fillOverwrite) fillingSpace = false;
+        if (!fillOverwrite) { fillingSpace = false; diffPosToAdd = Vector2.zero; }
         fillOverwrite = false;
         yield break;
     }

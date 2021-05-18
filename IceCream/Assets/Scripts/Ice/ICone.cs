@@ -8,10 +8,10 @@ public interface ICone
     int GetID();
     void SetID(int _id);
     IceAttribute Get_attribute();
+    void ResetAttributes();
     Vector2 Get_posInCone();
     void Set_posInCone(Vector2 position);
     void Set_prevIce(Rigidbody2D _prev);
-    Vector2 Get_virtPosInCone();
     string Get_name();
     Transform Get_transform();
     IEnumerator FillSpace(Vector2 endPos);

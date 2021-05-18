@@ -53,10 +53,12 @@ public class Cone2Script : MonoBehaviour, ICone
     public int GetID() => 0;
     public void SetID(int _id) { /*id der Waffel ist immer gleich 0*/}
     public IceAttribute Get_attribute() => null;
+    public void ResetAttributes() { }
     public Vector2 Get_posInCone() => Vector2.zero;
     public void Set_posInCone(Vector2 position) { /*redundant*/}
     public void Set_prevIce(Rigidbody2D _prev) { /*redundant*/}
     public Vector2 Get_virtPosInCone() => Vector2.zero;
+    public void Set_virtPosInCone(Vector2 position) { }
     public IEnumerator FillSpace(Vector2 endPos) { yield break; }
     public IEnumerator ShootIce(ICone prev) { yield break; }
     public Rigidbody2D Get_rb() => rb;
@@ -83,17 +85,41 @@ public class Cone2Script : MonoBehaviour, ICone
             else /*if (i != 1)*/ iceTower[i].Set_posInCone(iceTower[i + 1].Get_posInCone());//Lasse alle anderen Kugeln um eine Kugel nach oben wandern
 
             iceTower[i].Set_prevIce(iceTower[i-1].Get_rb());
+
+            //Überprüfe auf Misch- Attribut:
+            if(i > 2 && iceTower[i - 2].Get_attribute().isMelange && !(iceTower[i - 1].Get_attribute().isMelange || iceTower[i].Get_attribute().isMelange))
+            {
+                //Kombiniere die mittlere Kugel mit der oberen:
+                iceTower[i - 1].Get_attribute().Combine(iceTower[i].Get_attribute());
+                iceTower[i - 1].ResetAttributes();
+                //Lösche anschließend die oberste und die unterste Kugel:
+                RemoveCombinedIce(i);
+                i -= 2;
+                //Hier evtl. Effekte hinzufügen:
+            }
         }
     }
 
+    public void RemoveCombinedIce(int id_removed)
+    {
+        if(id_removed < iceTower.Count - 1) StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone()));
+        StartCoroutine(iceTower[id_removed - 1].FillSpace(iceTower[id_removed - 2].Get_posInCone()));
+
+
+        for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 2);
+        iceTower[id_removed - 1].SetID(id_removed - 2);
+
+
+        Destroy(iceTower[id_removed].Get_transform().gameObject);
+        iceTower.RemoveAt(id_removed);
+        Destroy(iceTower[id_removed - 2].Get_transform().gameObject);
+        iceTower.RemoveAt(id_removed - 2);
+    }
     public void RemoveIce(int id_removed)
     {
-        for (int i = iceTower.Count - 1; i > id_removed; i--)
-        {
-            //Debug.Log(iceTower[i].Get_name() + ": " + iceTower[i - 1].Get_virtPosInCone());
-            StartCoroutine(iceTower[i].FillSpace(iceTower[i - 1].Get_virtPosInCone()));
-            iceTower[i].SetID(i - 1);
-        }
+        StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone()));
+
+        for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
 
         iceTower[id_removed].Get_transform().parent = null;
         iceTower.RemoveAt(id_removed);

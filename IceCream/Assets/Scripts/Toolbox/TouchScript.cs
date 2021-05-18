@@ -16,6 +16,8 @@ public class TouchScript : MonoBehaviour
     private int mask_id = 0;
     public static bool portraitMode;
 
+    private GameObject mousePointer;
+
     private void Start()
     {
         //Aktiviere Inputsystem:
@@ -26,6 +28,19 @@ public class TouchScript : MonoBehaviour
     {
         //if (pauseGame || !runGame) return;
         foreach (var touch in Touch.activeFingers) StartCoroutine(KeepTouchpoint(touch));
+
+        //Mouse-Support:
+        if (mousePointer != null)
+        {
+            if (!Input.GetMouseButton(0)) { Destroy(mousePointer); return; }
+
+            mousePointer.transform.position = PixelToWorld(Input.mousePosition);
+        }
+        else if(Input.GetMouseButton(0))
+        {
+            mousePointer = Instantiate(touchPrefab, PixelToWorld(Input.mousePosition), Quaternion.identity);
+            mousePointer.GetComponent<TouchSensor>().Initialize(999);
+        }
     }
 
     IEnumerator KeepTouchpoint(Finger finger)

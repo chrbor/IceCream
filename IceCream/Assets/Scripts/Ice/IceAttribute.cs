@@ -36,19 +36,21 @@ public class IceAttribute : ScriptableObject
     [HideInInspector]
     public float stickyRotation;//Rotation per Tick in Radianten
 
+
+    [Tooltip("Dieser Text wird im Infofeld und im Glossar direct unterhalb der Beschreibung angezeigt")]
+    public string anecdote;
+    [Tooltip("Dieser Text wird im Infofeld und im Glossar angezeigt"), TextArea(5, 7)]
+    public string description;
+
     [Header("Visuelle Attribute")]
-    [Tooltip("Name des Eis, wenn blank, dann gleich dem Name des Objektes")]
-    public string nameIce;
+    //[Tooltip("Name des Eis, wenn blank, dann gleich dem Name des Objektes")]
+    //public string nameIce;
     [Tooltip("Sprite der Eiskugel")]
     public SpriteData primSprite;
     [Tooltip("Sprite der ursprünglichen Dekoration des primären Sprites")]
     public SpriteData prim_secSprite;
     [HideInInspector]
     public List<SpriteData> secSprites;//aktuelle(r) Sprite(s) der Dekoration der Eiskugel, können mehrere sein
-    [Tooltip("Gibt an wie dominant das PrimärSprite ist")]
-    public int prim_dominance;
-    [Tooltip("Gibt an wie dominant das SekundärSprite ist")]
-    public int sec_dominance;
 
 
     [Header("Aktiv (Effekte auf die Kugel):")]
@@ -101,11 +103,10 @@ public class IceAttribute : ScriptableObject
 
     public void Set_Attribute(IceAttribute attribute)
     {
-        nameIce = attribute.nameIce == "" ? attribute.name : attribute.nameIce;
+        //nameIce = attribute.nameIce == "" ? attribute.name : attribute.nameIce;
+        name = attribute.name;
         primSprite = attribute.primSprite;
         secSprites = attribute.secSprites;
-        prim_dominance = attribute.prim_dominance;
-        sec_dominance = attribute.sec_dominance;
 
         scale = attribute.scale;
         mass = attribute.mass;
@@ -135,24 +136,25 @@ public class IceAttribute : ScriptableObject
 
     public void Combine(IceAttribute attribute)
     {
+        Debug.Log("Combine into " + name);
         isMelange = false;
 
         //Visuell:
         primSprite = attribute.primSprite.dominance > primSprite.dominance ? attribute.primSprite : primSprite;
-        int index;
+        int i;
         foreach(var spriteData in attribute.secSprites)
         {
-            for (index = 0; index < secSprites.Count; index++) if (spriteData.dominance <= secSprites[index].dominance) break;
-            if(spriteData.dominance != secSprites[index].dominance) secSprites.Insert(index, attribute.secSprites[index]);
+            for (i = 0; i < secSprites.Count; i++) if (spriteData.dominance <= secSprites[i].dominance) break;//Ermittle die Stelle, an die die Textur eingefügt werden muss
+            secSprites.Insert(i, spriteData);
         }
 
         //Aktiv:
-        scale = (scale + attribute.scale) / 1.5f;
+        scale = (scale + attribute.scale) / 1.75f;
         mass = (mass + attribute.mass) / 1.5f;
         life = (life + attribute.life) / 2.25f;
 
-        shootPower = (shootPower + attribute.shootPower) / 1.5f;
-        explosionRange = (explosionRange + attribute.explosionRange) / 1.25f;
+        shootPower = (shootPower + attribute.shootPower) / 2;
+        explosionRange = (explosionRange + attribute.explosionRange) / 1.5f;
         sticky |= attribute.sticky;
         reactOnImpact |= attribute.reactOnImpact;
         growing = (growing + attribute.growing) / 1.5f;
