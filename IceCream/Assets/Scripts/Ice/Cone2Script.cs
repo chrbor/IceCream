@@ -129,7 +129,7 @@ public class Cone2Script : MonoBehaviour, ICone
     public void FiringIce()
     {
         int i = iceTower.Count - 1;
-        if (i == 0) return;
+        if (i == 0 || pauseGame) return;
         StartCoroutine(iceTower[i].ShootIce(iceTower[i - 1]));
         iceTower.RemoveAt(i);
     }
@@ -160,7 +160,7 @@ public class Cone2Script : MonoBehaviour, ICone
 
     void FixedUpdate()
     {
-        if (!run) return;
+        if (!run || pauseGame) return;
 
         rb.velocity = rb.position - prevPosition;
         //Rotiere zur letzten Eiskugel:

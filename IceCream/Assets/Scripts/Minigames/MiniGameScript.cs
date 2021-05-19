@@ -7,7 +7,7 @@ using static Cone2Script;
 public class MiniGameScript : MonoBehaviour
 {
     public static MiniGameScript miniGame_current;
-    public bool runGame;
+    public bool runGame, stoppingGame;
 
     private Vector2 startPoint;
 
@@ -15,6 +15,7 @@ public class MiniGameScript : MonoBehaviour
     public GameObject cone_mini;
     [HideInInspector]
     public List<GameObject> iceOnCone;
+    protected int startID;
 
     protected GameObject inGameUI, txtField;
     protected Animator anim_CountDown, anim_Success, anim_Failure;
@@ -39,17 +40,22 @@ public class MiniGameScript : MonoBehaviour
         //Erstelle Eis: 
         cone_mini = Instantiate(iceStand.MiniConePrefab, transform.position, Quaternion.identity, transform);
         Vector2 icePos = cone_mini.transform.position + Vector3.up * .5f;
+        startID = addedIce.Count;
+
         iceOnCone = new List<GameObject>();
         GameObject secSpriteObj;
         if(cone != null)
-            for(int i = 1; i < cone.iceTower.Count + addedIce.Count; i++)
+        {
+            startID += cone.iceTower.Count;
+            GameObject myIcePrefab = new GameObject("displayIce");
+            myIcePrefab.AddComponent<SpriteRenderer>().sortingLayerName = "Ice";
+            for(int i = 1; i < startID; i++)
             {
                 icePos += Vector2.up * .6f;
-                iceOnCone.Add(Instantiate(iceStand.MiniIcePrefab, icePos, Quaternion.identity, cone_mini.transform));
+                iceOnCone.Add(Instantiate(myIcePrefab, icePos, Quaternion.identity, cone_mini.transform));
 
                 //Sprites entsprechend der Attribute:
                 IceAttribute attribute = i < cone.iceTower.Count ? cone.iceTower[i].Get_attribute() : addedIce[i - cone.iceTower.Count];
-                iceOnCone[i-1].GetComponent<MiniIceScript>().id = i;
 
                 SpriteRenderer primSpriteRenderer = iceOnCone[i - 1].GetComponent<SpriteRenderer>();
                 primSpriteRenderer.sprite = attribute.primSprite.sprite;
@@ -69,6 +75,9 @@ public class MiniGameScript : MonoBehaviour
                     secSpriteObj.transform.localPosition = Vector3.zero;
                 }
             }
+            Destroy(myIcePrefab);
+        }
+
 
         //Gehe zum Spielfeld:
         StartCoroutine(MoveCamera(true));
@@ -82,7 +91,9 @@ public class MiniGameScript : MonoBehaviour
 
         //Beende das Spiel:
         yield return new WaitForSeconds(1);
-        iceStand.ResetIce();
+        plannedIce.Clear();
+        for (int i = iceStand.iceDisplay.childCount - 1; i > 0; i--) Destroy(iceStand.iceDisplay.GetChild(i).gameObject);
+        yield return new WaitForSeconds(.1f);
         iceStand.UpdateIceDisplay();
         StartCoroutine(MoveCamera(false));
         yield return new WaitForSeconds(1);
@@ -115,7 +126,7 @@ public class MiniGameScript : MonoBehaviour
         yield break;
     }
 
-    public virtual void AddIce(int id)
+    public virtual void AddIce(GameObject iceObj)
     {
         Debug.Log("Adding not implemented yet");
     }

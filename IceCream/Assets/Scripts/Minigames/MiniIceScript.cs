@@ -11,6 +11,8 @@ public class MiniIceScript : MonoBehaviour
 
     private SpriteRenderer primSprite, secSprite;
 
+    private List<Collider2D> cols = new List<Collider2D>();
+
     void Start()
     {
         if (attribute == null) return;
@@ -37,20 +39,19 @@ public class MiniIceScript : MonoBehaviour
     {
         transform.position += Vector3.down * fallSpeed;
 
-        if(Camera.main.transform.position.y - transform.position.y > Camera.main.orthographicSize)
+        if (miniGame_current.iceOnCone.Count > 0 && !miniGame_current.stoppingGame && miniGame_current.runGame)
         {
-            miniGame_current.runGame = false;
+            if ((transform.position - miniGame_current.iceOnCone[miniGame_current.iceOnCone.Count - 1].transform.position).sqrMagnitude < 1)
+                miniGame_current.AddIce(gameObject);
+        }
+        else if(Mathf.Abs(transform.position.x - miniGame_current.cone_mini.transform.position.x) < 1 && Mathf.Abs(transform.position.y - miniGame_current.cone_mini.transform.position.y - 1) < .25f)
+            miniGame_current.AddIce(gameObject);
+
+        if (Camera.main.transform.position.y - transform.position.y > Camera.main.orthographicSize)
+        {
+            Debug.Log("GameOver durch " + attribute.name);
+            miniGame_current.stoppingGame = true;
             Destroy(gameObject);
         }
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if(miniGame_current.iceOnCone.Count > 0)
-            if (other.gameObject != miniGame_current.iceOnCone[miniGame_current.iceOnCone.Count - 1]) return;
-        else
-            if (other.gameObject != miniGame_current.cone_mini.gameObject) return;
-
-        miniGame_current.AddIce(id);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using static GameManager;
 using static Cone2Script;
 
@@ -24,7 +25,8 @@ public class IceStandScript : MonoBehaviour
     public GameObject MiniIcePrefab;
     public GameObject MiniConePrefab;
 
-    Transform iceDisplay, startField, infoField;
+    public Transform iceDisplay;
+    Transform startField, infoField;
     Text header, anecdote, body, dataText;
     Image iceImage;
 
@@ -64,7 +66,7 @@ public class IceStandScript : MonoBehaviour
             obj.GetComponent<Image>().sprite = Resources.Load<Sprite>("Attributes/Sprites/" + cone.iceTower[i].Get_attribute().name);
             obj.GetComponent<Image>().color = light_gray;
         }
-        for (int i = iceDisplay.childCount; i < cone.iceTower.Count + addedIce.Count; i++)
+        for (int i = iceDisplay.childCount - cone.iceTower.Count; i < addedIce.Count; i++)
         {
             obj = Instantiate(IceImagePrefab, iceDisplay.transform);
             obj.GetComponent<Image>().sprite = Resources.Load<Sprite>("Attributes/Sprites/" + addedIce[i].name);
@@ -75,6 +77,7 @@ public class IceStandScript : MonoBehaviour
     public void ExitMiniGame()
     {
         if (mainScene == null) return;
+        AddToTower(addedIce);
         Scene oldScene = SceneManager.GetActiveScene();
         SceneManager.SetActiveScene(mainScene);
         mainCamera.SetActive(true);
@@ -83,7 +86,14 @@ public class IceStandScript : MonoBehaviour
 
     public void StartMiniGame()
     {
-        if(miniGamePrefab == null) { AddToTower(plannedIce); ExitMiniGame(); return; }
+        if(miniGamePrefab == null)
+        {
+            addedIce.AddRange(plannedIce);
+            AddToTower(addedIce);
+            ExitMiniGame();
+            return;
+        }
+        EventSystem.current.SetSelectedGameObject(null);
 
         //Starte das minigame:
         miniGame = Instantiate(miniGamePrefab).GetComponent<MiniGameScript>();
@@ -92,7 +102,7 @@ public class IceStandScript : MonoBehaviour
 
     public void AddToTower(List<IceAttribute> addedAttributes, int numberOfIce = 999)
     {
-        if (cone == null || addedAttributes.Count == 0) return;
+        if (cone == null) return;
 
         //Ordne das Eis richtig an:
         int index = 1;
@@ -107,6 +117,8 @@ public class IceStandScript : MonoBehaviour
             }
             cone.iceTower[cone.iceTower.Count - 1].Set_posInCone(Vector2.up * posInCone_height);
         }
+
+        if (addedAttributes.Count == 0) return;
 
         //Füge das Eis hinzu:
         numberOfIce = Mathf.Clamp(numberOfIce, 0, addedAttributes.Count);
@@ -136,7 +148,7 @@ public class IceStandScript : MonoBehaviour
     public void ResetIce()
     {
         //Erstes Element ist die Waffel, alle Kugeln in iceTower können nicht geändert werden, da sie schon auf der Waffel sind:
-        int min = cone != null ? cone.iceTower.Count - 1 : 0;
+        int min = cone != null ? cone.iceTower.Count + addedIce.Count - 1 : 0;
         Debug.Log("min: " + min + ", childcount: " + iceDisplay.childCount);
         for(int i = iceDisplay.childCount - 1; i > min; i--)
         {
