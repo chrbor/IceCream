@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static ClockScript;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class GameManager : MonoBehaviour
     public static bool pauseGame;
     public static bool pauseMiniGame;
 
+    public static bool commentaryON;
+
     public static GameObject player;
     public static PlayerAttribute pAttribute;
 
@@ -22,9 +25,13 @@ public class GameManager : MonoBehaviour
     public static GameObject mainCamera;
     public static GameObject globalLight;
 
+    public static List<IceAttribute> iceDelivered;
+
     // Start is called before the first frame update
     void Start()
     {
+        commentaryON = true;
+
         Screen.autorotateToLandscapeLeft = true;
         Screen.autorotateToLandscapeRight = true;
         Screen.autorotateToPortrait = false;
@@ -35,6 +42,16 @@ public class GameManager : MonoBehaviour
         mainListener = Camera.main.GetComponent<AudioListener>();
         mainCamera = Camera.main.gameObject;
         globalLight = GameObject.FindGameObjectWithTag("light");
+
+        iceDelivered = new List<IceAttribute>();
+    }
+
+    public static void PauseTheGame(bool pausing)
+    {
+        pauseGame = pausing;
+        pauseMove = pausing;
+        Physics2D.autoSimulation = !pausing;
+        if (clock != null) clock.running = !pausing;
     }
 
     [System.Serializable]

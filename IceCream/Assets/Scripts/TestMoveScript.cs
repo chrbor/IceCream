@@ -7,13 +7,11 @@ public class TestMoveScript : MonoBehaviour
 {
     ProcMove proc;
     Rigidbody2D rb;
-    private bool jumpReady;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        proc = GetComponent<ProcMove>();
-        jumpReady = true;
+        proc = transform.GetChild(0).GetComponent<ProcMove>();
     }
 
     bool prevTapp = false;
@@ -23,13 +21,16 @@ public class TestMoveScript : MonoBehaviour
         if (Input.GetKey(KeyCode.Space) && !prevTapp) IceManager.CallFireIce();
         prevTapp = Input.GetKey(KeyCode.Space);
 
-        if (Input.GetKey(KeyCode.LeftArrow)) transform.position += Vector3.left * pAttribute.real_vel * .5f;
-        if (Input.GetKey(KeyCode.RightArrow)) transform.position += Vector3.right * pAttribute.real_vel * .5f;
-        if(Input.GetKey(KeyCode.UpArrow) && jumpReady) { jumpReady = false; rb.velocity = new Vector2(rb.velocity.x, pAttribute.jumpPower); }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        jumpReady = true;
+        if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        {
+            if(Physics2D.Raycast((Vector2)transform.position + Vector2.down, Vector2.left, .6f, 1 << 11).collider == null)
+                rb.position += Vector2.left * pAttribute.real_vel * .6f;
+        }
+        if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+        {
+            if (Physics2D.Raycast((Vector2)transform.position + Vector2.down, Vector2.right, .6f, 1 << 11).collider == null)
+                rb.position += Vector2.right * pAttribute.real_vel * .6f;
+        }
+        if(Input.GetKey(KeyCode.UpArrow) && !proc.falling) { rb.velocity = new Vector2(rb.velocity.x, pAttribute.jumpPower); }
     }
 }

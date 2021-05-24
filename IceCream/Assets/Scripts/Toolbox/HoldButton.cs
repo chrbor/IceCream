@@ -11,15 +11,15 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public static event UnityAction<bool> lockButtons;
     public static event UnityAction unlockButtons;
 
-    Sprite normal;
+    protected Sprite normal;
     public Sprite selectedSprite;
     public Sprite clickedSprite;
     public Sprite lockedSprite;
 
     Image image;
 
-    bool pointerDown;
-    bool locked, selected;
+    protected bool pointerDown;
+    protected bool locked, selected;
     
     void Awake()
     {
@@ -64,7 +64,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             StartCoroutine(HoldCounter());
         }
     }
-    public void OnPointerUp(PointerEventData eventData)
+    public virtual void OnPointerUp(PointerEventData eventData)
     {
         pointerDown = false;
         if (!locked)

@@ -59,7 +59,7 @@ public class IceScript : MonoBehaviour, ICone
         id = _id;
         sprite.sortingOrder = -id * 1000;
         Transform Ttex = transform.GetChild(transform.childCount - 1);
-        for (int i = 0; i < Ttex.childCount; i++) Ttex.GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + i;
+        for (int i = 0; i < Ttex.childCount; i++) Ttex.GetChild(i).GetComponent<SpriteRenderer>().sortingOrder = sprite.sortingOrder + 1 + i;
     }
     public IceAttribute Get_attribute() => _attribute;
     public void Set_Attribute(IceAttribute attribute)
@@ -70,6 +70,7 @@ public class IceScript : MonoBehaviour, ICone
     public Rigidbody2D Get_rb() => rb;
     public Vector2 Get_posInCone() => posInCone;
     public void Set_posInCone(Vector2 position) => posInCone = position;
+    public Vector2 Get_diffPosToAdd() => diffPosToAdd;
     public void Set_prevIce(Rigidbody2D _prev) { prevIce = _prev; }
     //public Vector2 Get_virtPosInCone() => virtPosInCone;
     //public void Set_virtPosInCone(Vector2 position) => virtPosInCone = position;
@@ -254,15 +255,12 @@ public class IceScript : MonoBehaviour, ICone
         int _layer = other.gameObject.layer;
         if(id > 0)//Eis ist auf der Waffel
         {
-            if (other.tag == "Col" || _layer == 8 || _layer == 12 || _layer == 13) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
+            if (other.tag == "Col" || _layer == 8 || _layer == 12 || _layer == 13 || _layer == 19) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
 
             //Eis wird runtergeschubst:
             Debug.Log(name + " leaving: posInCone: " + posInCone);
             cone.RemoveIce(id);
-            id = -1;
-            _attribute.RemoveFromCone();
-            cScript.offset = new Vector2(0, --coneIceCount * .3f);
-            Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
+            RemoveFromCone();
             fillingSpace = false;//beende evtl filling
             StartCoroutine(PushIceOut());
             return;
@@ -502,7 +500,6 @@ public class IceScript : MonoBehaviour, ICone
     }
 
     bool block_ice_enter = false;
-    //int contactMask = (1 << 10) | (1 << 11) | (1 << 8);//Kontakt nur mit Obstacles, Ground und Eis
     public IEnumerator PushIceOut()
     {
         block_ice_enter = true;
@@ -518,25 +515,30 @@ public class IceScript : MonoBehaviour, ICone
 
         //Warte, bis die Eiskugel nichts mehr berührt:
         gameObject.layer = 13;//Ice_col
-        //do { yield return new WaitForSeconds(.1f); } while (Physics2D.CircleCast(transform.position, transform.localScale.x/2, Vector2.up, 666/*Muhahahaha!!!*/, contactMask).collider != null);
-        yield return new WaitForSeconds(.2f);
+        do { yield return new WaitForSeconds(.2f); } while (Physics2D.CircleCast(transform.position, transform.localScale.x/2, Vector2.up, 666/*Muhahahaha!!!*/, 1<<8).collider != null);
+        //yield return new WaitForSeconds(.2f);
         gameObject.layer = 8;//Ice
         block_ice_enter = false;
         yield break;
     }
     public IEnumerator ShootIce(ICone prev)
     {
-        id = -1;
-        _attribute.RemoveFromCone();
-        cScript.offset = new Vector2(0, --coneIceCount * .3f);
-        Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
-        rb.velocity = cone.rb.velocity + (rb.position - prev.Get_rb().position).normalized * _attribute.shootPower;
+        RemoveFromCone();
         transform.parent = null;
+        rb.velocity = cone.rb.velocity + (rb.position - prev.Get_rb().position).normalized * _attribute.shootPower;
 
         gameObject.layer = 13;
         yield return new WaitForSeconds(.1f);
         gameObject.layer = 8;
         yield break;
+    }
+
+    public void RemoveFromCone()
+    {
+        id = -1;
+        _attribute.RemoveFromCone();
+        cScript.offset = new Vector2(0, --coneIceCount * .3f);
+        Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
     }
 
     bool fillingSpace, fillOverwrite;
@@ -553,15 +555,16 @@ public class IceScript : MonoBehaviour, ICone
         fillingSpace = true;
 
         //Lerp zur nächsten position
-        diffPosToAdd += _endPos - posInCone;
+        diffPosToAdd = _endPos - posInCone;//previous: +=
         Vector2 diffPosStep = diffPosToAdd * cone.fillTime_real;
-        for (float count = 0; count < 1 && !fillOverwrite && fillingSpace; count += cone.fillTime_real)
+        for (float count = 0; count < 1 && !fillOverwrite && fillingSpace && id > 0; count += cone.fillTime_real)
         {
             if (pauseGame) yield return new WaitWhile(() => pauseGame);
             for (int i = id; i < cone.iceTower.Count; i++) cone.iceTower[i].Set_posInCone(cone.iceTower[i].Get_posInCone() + diffPosStep);
             diffPosToAdd -= diffPosStep;
             yield return new WaitForFixedUpdate();
         }
+
         yield return new WaitForFixedUpdate();
         //Debug.Log(name + " stopped: overwrite: " + fillOverwrite + ", fillingSpace: " + fillingSpace + ", posInCone: " + posInCone + ", virt: " + virtPosInCone);
         if (!fillOverwrite) { fillingSpace = false; diffPosToAdd = Vector2.zero; }

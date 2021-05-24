@@ -29,7 +29,7 @@ MonoBehaviour:
   - sprite: {fileID: 21300000, guid: 93b3a4c4657ff574f822e94fbef30255, type: 3}
     dominance: 8
   scale: 1.1
-  mass: 1
+  mass: 1.5
   shootPower: 15
   life: 4
   life_current: 0

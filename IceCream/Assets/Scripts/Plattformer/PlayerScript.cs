@@ -13,7 +13,6 @@ public class PlayerScript : MonoBehaviour
     public float thresh_jump = .3f;
     public float thresh_jump_max = .4f;
     public PlayerAttribute attribute;
-    public bool jumpReady { get; private set; }
 
     private Rigidbody2D rb;
     private ProcMove pMove;
@@ -25,7 +24,8 @@ public class PlayerScript : MonoBehaviour
 
     bool prevTapp = false;
 
-    private int mask = 1 << 12;//Ground
+    private int mask = 1 << 11;//Ground
+    private ProcMove procMove;
 
     void Awake()
     {
@@ -35,7 +35,7 @@ public class PlayerScript : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         pMove = transform.GetChild(0).GetComponent<ProcMove>();
         Input.gyro.enabled = true;
-        jumpReady = true;
+        procMove = transform.GetChild(0).GetComponent<ProcMove>();
     }
     
     // Update is called once per frame
@@ -63,27 +63,26 @@ public class PlayerScript : MonoBehaviour
             Camera.main.transform.eulerAngles = new Vector3(0, 0, -angle);
         }
 
-        if (Mathf.Abs(angle) > thresh_run && !pauseMove)
+        if (Mathf.Abs(angle) > thresh_run && !pauseMove && Physics2D.Raycast((Vector2)transform.position + Vector2.down, Vector2.right * Mathf.Sign(moveStrength), .6f, mask).collider == null)
         {
             isMoving = true;
-            RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.up * 0.5f, Vector3.right * moveStrength, 1.5f, mask);
+            //RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.up * 0.5f, Vector3.right * moveStrength, 1.5f, mask);
             rb.position += Vector2.right * attribute.real_vel * moveStrength;
-            if (hit.collider) rb.position += Vector2.up * 0.2f;
+            //if (hit.collider) rb.position += Vector2.up * 0.2f;
         }
     }
 
     private void Update()
     {
         //Springen:
-        if (Input.gyro.userAcceleration.z > thresh_jump && jumpReady && !pauseMove)
+        if (Input.gyro.userAcceleration.z > thresh_jump && !procMove.falling && !pauseMove)
         {
-            jumpReady = false;
-            //rb.AddForce(Vector2.up * (Input.gyro.userAcceleration.z > thresh_jump_max ? thresh_jump_max : Input.gyro.userAcceleration.z) * jumpStrength);
             rb.velocity = new Vector2(rb.velocity.x, (Input.gyro.userAcceleration.z > thresh_jump_max ? 1 : Input.gyro.userAcceleration.z/thresh_jump_max) * attribute.jumpPower);
         }
         //anim.SetBool("moving", isMoving && !pauseMove);
     }
 
+    /*
     int holdHeight;
     float y_hold;
     private void OnCollisionEnter2D(Collision2D other)

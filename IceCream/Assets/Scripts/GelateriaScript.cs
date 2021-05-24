@@ -33,9 +33,7 @@ public class GelateriaScript : MonoBehaviour
         loadingScene = true;
         globalLight.SetActive(false);
         mainListener.enabled = false;
-        pauseGame = true;
-        pauseMove = true;
-        Physics2D.autoSimulation = false;
+        PauseTheGame(true);
         SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
 
     }
@@ -58,8 +56,6 @@ public class GelateriaScript : MonoBehaviour
     {
         globalLight.SetActive(true);
         mainListener.enabled = true;
-        pauseGame = false;
-        pauseMove = false;
-        Physics2D.autoSimulation = true;
+        PauseTheGame(false);
     }
 }

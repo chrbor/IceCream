@@ -36,7 +36,8 @@ public class ProcMove : MonoBehaviour
     float prev_x;
     bool block_left, block_right;
     float blockVal_left, blockVal_right;
-    bool falling;
+    [HideInInspector]
+    public bool falling;
     bool stop;
 
 
@@ -149,7 +150,7 @@ public class ProcMove : MonoBehaviour
             {
                 //Falls der Char fällt, dann spiele Fallanimation ab:
                 //Die Fallanimation nährt sich schnell einer vordefinierten position an
-                fallDir = coneDir == 0 ? (direction == 0 ? 1 : direction) : coneDir;
+                fallDir = coneDir == 0 ? (direction == 0 ? Mathf.Sign(transform.localScale.x) : direction) : coneDir;
                 if (right_leg)
                 {
                     Vector2 jumpPos =  rightJumpPos * new Vector2(fallDir, 1);// ;
@@ -236,7 +237,7 @@ public class ProcMove : MonoBehaviour
                         //foot_rot_start = right_leg ? ;
 
                         start = new Vector2(direction, 1) * (right_leg ? rightJumpPos : leftJumpPos);
-                        if (right_leg) Debug.Log((direction > 0));
+                        //if (right_leg) Debug.Log((direction > 0));
 
                         start += (right_leg ? leg_right.transform.position : leg_left.transform.position);
                         diff = Vector2.zero;
@@ -283,7 +284,7 @@ public class ProcMove : MonoBehaviour
         Vector3 halfDiff = (leg_right.transform.position - leg_left.transform.position)/2;
         float legLength = 2.75f * boneLength;
         falling = false;
-        yield return new WaitUntil(() => !stop);
+        if(stop) yield return new WaitUntil(() => !stop);
         while (!stop)
         {
             falling = Physics2D.Raycast(leg_left.transform.position + halfDiff, Vector2.down, legLength, mask).collider == null;

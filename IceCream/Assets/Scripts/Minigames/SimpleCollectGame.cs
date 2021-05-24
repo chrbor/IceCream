@@ -77,7 +77,6 @@ public class SimpleCollectGame : MiniGameScript
         float afterTime = .5f;
         float stiffness = .5f;
         int iceCount = 0;
-        RaycastHit2D hit;
         while (afterTime > 0)
         {
             if (stoppingGame) { afterTime -= Time.fixedDeltaTime; stiffness = .8f; }

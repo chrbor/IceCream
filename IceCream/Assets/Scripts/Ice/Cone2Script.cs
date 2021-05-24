@@ -56,6 +56,7 @@ public class Cone2Script : MonoBehaviour, ICone
     public void ResetAttributes() { }
     public Vector2 Get_posInCone() => Vector2.zero;
     public void Set_posInCone(Vector2 position) { /*redundant*/}
+    public Vector2 Get_diffPosToAdd() => Vector2.zero;
     public void Set_prevIce(Rigidbody2D _prev) { /*redundant*/}
     public Vector2 Get_virtPosInCone() => Vector2.zero;
     public void Set_virtPosInCone(Vector2 position) { }
@@ -66,6 +67,7 @@ public class Cone2Script : MonoBehaviour, ICone
     public Transform Get_transform() => transform.GetChild(0);
 
 
+    //Aufgerufen, wenn eis hinzugefügt wird:
     public void UpdateConeTower(int startPtr)
     {
         for (int i = startPtr; i < iceTower.Count; i++)
@@ -102,7 +104,7 @@ public class Cone2Script : MonoBehaviour, ICone
 
     public void RemoveCombinedIce(int id_removed)
     {
-        if(id_removed < iceTower.Count - 1) StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone()));
+        if(id_removed < iceTower.Count - 1) StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed-1].Get_posInCone()));
         StartCoroutine(iceTower[id_removed - 1].FillSpace(iceTower[id_removed - 2].Get_posInCone()));
 
 
@@ -117,9 +119,11 @@ public class Cone2Script : MonoBehaviour, ICone
     }
     public void RemoveIce(int id_removed)
     {
-        StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone()));
-
-        for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
+        if (id_removed < iceTower.Count - 1)
+        {
+            StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone() + iceTower[id_removed].Get_diffPosToAdd()));
+            for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
+        }
 
         iceTower[id_removed].Get_transform().parent = null;
         iceTower.RemoveAt(id_removed);
@@ -204,6 +208,7 @@ public class Cone2Script : MonoBehaviour, ICone
         diff_info.Clear();
         for (int i = 0; i < iceTower.Count; i++)
         {
+            if (iceTower[i] == null) { Debug.Log("Ice " + i + " is null!"); continue; }
             diff_pos = iceTower[i].Get_transform().position - transform.position;
             float diff_rot = Mathf.Atan2(diff_pos.y, diff_pos.x) * Mathf.Rad2Deg - 90;
             while (Mathf.Abs(diff_rot) > 180) diff_rot -= 360 * Mathf.Sign(diff_rot);
