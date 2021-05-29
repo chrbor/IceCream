@@ -13,10 +13,14 @@ public class Cone2Script : MonoBehaviour, ICone
     float diff_rot_cone;
 
     public bool run;
+    public float blockTime = 0;
+    private bool isGettingDestroyed;
 
     public float helpForce = 40;
     public Vector2 coneGravity;
     public Vector2 tilt_move;
+    [HideInInspector]
+    public Vector2 windForce;
 
     Vector2 prevPosition, diff;
     public Rigidbody2D rb { get; protected set; }
@@ -46,6 +50,7 @@ public class Cone2Script : MonoBehaviour, ICone
 
     private void OnDestroy()
     {
+        isGettingDestroyed = true;
         FireIce -= FiringIce;
     }
 
@@ -65,7 +70,7 @@ public class Cone2Script : MonoBehaviour, ICone
     public Rigidbody2D Get_rb() => rb;
     public string Get_name() => name;
     public Transform Get_transform() => transform.GetChild(0);
-
+    public bool GettingDestroyed() => isGettingDestroyed;
 
     //Aufgerufen, wenn eis hinzugefügt wird:
     public void UpdateConeTower(int startPtr)
@@ -104,6 +109,8 @@ public class Cone2Script : MonoBehaviour, ICone
 
     public void RemoveCombinedIce(int id_removed)
     {
+        //if (iceTower[id_removed].GettingDestroyed()) return;
+
         if(id_removed < iceTower.Count - 1) StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed-1].Get_posInCone()));
         StartCoroutine(iceTower[id_removed - 1].FillSpace(iceTower[id_removed - 2].Get_posInCone()));
 
@@ -119,15 +126,70 @@ public class Cone2Script : MonoBehaviour, ICone
     }
     public void RemoveIce(int id_removed)
     {
+        //if (iceTower[id_removed].GettingDestroyed()) return;
+
         if (id_removed < iceTower.Count - 1)
         {
-            StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone() + iceTower[id_removed].Get_diffPosToAdd()));
+            StartCoroutine(FillSpace(id_removed, iceTower[id_removed+1].Get_posInCone(), iceTower[id_removed].Get_posInCone()));
+            //StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone() + iceTower[id_removed].Get_diffPosToAdd()));
             for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
         }
 
         iceTower[id_removed].Get_transform().parent = null;
         iceTower.RemoveAt(id_removed);
     }
+
+
+
+    class FillInfoClass
+    {
+        public bool filling;
+        public bool overwriting;
+        public Vector2 diffPosToAdd;
+
+        public FillInfoClass()
+        {
+            filling = false;
+            overwriting = false;
+            diffPosToAdd = new Vector2();
+        }
+    }
+    List<FillInfoClass> fillInfos = new List<FillInfoClass>();
+    IEnumerator FillSpace(int id, Vector2 posInCone, Vector2 _endPos)
+    {
+        Debug.Log("id: " + id + "\nposInCone: " + posInCone + ", endPos: " + _endPos);
+        //Aktualisiere die Range der fillInfos;
+        for (int i = fillInfos.Count; i < id; i++) fillInfos.Add(new FillInfoClass());
+        id--;//null ist cone
+
+        //Überlagere vorherige Lückenfüller:
+        if (fillInfos[id].filling)
+        {
+            fillInfos[id].overwriting = true;
+            yield return new WaitUntil(() => !fillInfos[id].overwriting);
+            //Debug.Log(name + " overwritten to: " + _endPos);
+        }
+        else fillInfos[id].filling = true;
+
+        //Lerp zur nächsten position
+        fillInfos[id].diffPosToAdd += _endPos - posInCone;//previous: +=
+        Vector2 diffPosStep = fillInfos[id].diffPosToAdd * cone.fillTime_real;
+        for (float count = 0; count < 1 && !fillInfos[id].overwriting && fillInfos[id].filling && iceTower.Count > id+1; count += cone.fillTime_real)
+        {
+            if (pauseGame) yield return new WaitWhile(() => pauseGame);
+            for (int i = id+1; i < cone.iceTower.Count; i++) cone.iceTower[i].Set_posInCone(cone.iceTower[i].Get_posInCone() + diffPosStep);
+            fillInfos[id].diffPosToAdd -= diffPosStep;
+            yield return new WaitForFixedUpdate();
+        }
+
+        yield return new WaitForFixedUpdate();
+        //Debug.Log(name + " stopped: overwrite: " + fillOverwrite + ", fillingSpace: " + fillingSpace + ", posInCone: " + posInCone + ", virt: " + virtPosInCone);
+        if (!fillInfos[id].overwriting) { fillInfos[id].filling = false; fillInfos[id].diffPosToAdd = Vector2.zero; }
+        fillInfos[id].overwriting = false;
+        yield break;
+    }
+
+
 
     //public void FiringIce() => StartCoroutine(ShootIce());
     public void FiringIce()
@@ -161,10 +223,9 @@ public class Cone2Script : MonoBehaviour, ICone
     }
 
 
-
     void FixedUpdate()
     {
-        if (!run || pauseGame) return;
+        if (!run || pauseGame) { windForce = Vector2.zero; return; }
 
         rb.velocity = rb.position - prevPosition;
         //Rotiere zur letzten Eiskugel:
@@ -174,6 +235,10 @@ public class Cone2Script : MonoBehaviour, ICone
         UpdateIce();
 
         prevPosition = rb.position;
+        windForce = Vector2.zero;
+
+        //Test:
+        //for (int i = 1; i < iceTower.Count; i++) iceTower[i].SetID(i);
     }
 
     IEnumerator StartCone()
@@ -182,6 +247,16 @@ public class Cone2Script : MonoBehaviour, ICone
         player.transform.GetChild(0).GetComponent<ProcMove>().SetConeActive(1);
 
         yield return new WaitForSeconds(.5f);
+        run = true;
+        yield break;
+    }
+    public void blockCone() { if(!isGettingDestroyed) StartCoroutine(BlockingCone()); }
+    IEnumerator BlockingCone()
+    {
+        if (blockTime > 0) { blockTime += .1f; yield break; }
+        run = false;
+        blockTime = .1f;
+        for (; blockTime > 0; blockTime -= Time.fixedDeltaTime) yield return new WaitForFixedUpdate();
         run = true;
         yield break;
     }
@@ -208,7 +283,6 @@ public class Cone2Script : MonoBehaviour, ICone
         diff_info.Clear();
         for (int i = 0; i < iceTower.Count; i++)
         {
-            if (iceTower[i] == null) { Debug.Log("Ice " + i + " is null!"); continue; }
             diff_pos = iceTower[i].Get_transform().position - transform.position;
             float diff_rot = Mathf.Atan2(diff_pos.y, diff_pos.x) * Mathf.Rad2Deg - 90;
             while (Mathf.Abs(diff_rot) > 180) diff_rot -= 360 * Mathf.Sign(diff_rot);
@@ -239,20 +313,17 @@ public class Cone2Script : MonoBehaviour, ICone
             while (Mathf.Abs(rot_cntct) > 180) rot_cntct -= 360 * Mathf.Sign(rot_cntct);
 
             //da juicy stuff ;P
-            /*
-            float rot = i == iceTower.Count - 1 ?
-                diff_info[i].rotation * dist_Factor * (Mathf.Sign(diff_info[i].rotation) == Mathf.Sign(rb.velocity.x) || rb.velocity.x == 0? coneGravityFactor : .05f) + (10 + Mathf.Sign(rb.velocity.x) == Mathf.Sign(diff_info[i].rotation) ? 0 : 40) * rb.velocity.x * 0.1f * Mathf.Cos(diff_info[i].rotation * Mathf.Deg2Rad) : 
-                rot_cntct * dist_Factor * 2f * (1 - dist_Factor);//nicht die letzte Kugel: folge den anderen Kugeln
-            //*/
             float rot;
             if(i == iceTower.Count - 1)
             {
                 Vector2 rot_move = rb.velocity * tilt_move * RotToVec(diff_info[i].rotation * Mathf.Deg2Rad);
                 rot = diff_info[i].rotation * dist_Factor * (Mathf.Sign(diff_info[i].rotation) == Mathf.Sign(rb.velocity.x) || rb.velocity.x == 0 ? coneGravity.x : coneGravity.y) //Gravity
-                + (10 + Mathf.Sign(rb.velocity.x) == Mathf.Sign(diff_info[i].rotation) ? 0 : helpForce) * (rot_move.x + rot_move.y);//Movement
+                + (10 + Mathf.Sign(rb.velocity.x) == Mathf.Sign(diff_info[i].rotation) ? 0 : helpForce) * (rot_move.x + rot_move.y)//Movement
+                + Mathf.Sin((diff_info[i].rotation - 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)) * windForce.magnitude;
+                //Debug.Log("coneRot: " + (diff_info[i].rotation + 90) + ", windRot: " + Mathf.Atan2(windForce.y, windForce.x) * Mathf.Rad2Deg + ", diff: " + ((diff_info[i].rotation + 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)) * Mathf.Rad2Deg);
+                //Debug.Log(Mathf.Sin((diff_info[i].rotation + 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)));
             }
             else
-                //rot = rot_cntct * dist_Factor * 2 * (1 - dist_Factor);//nicht die letzte Kugel: folge den anderen Kugeln
                 rot = rot_cntct * weight * 1 * (1 - weight);
 
             //Stelle sicher, dass der Kontakt zur Vorherigen Kugel aufrecht erhalten wird

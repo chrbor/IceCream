@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using static GameManager;
 using static Cone2Script;
+using static ClockScript;
 
 public class IceStandScript : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class IceStandScript : MonoBehaviour
     {
         iceStand = this;
         canvas = transform.parent.parent.gameObject;
+        StartCoroutine(UpdateTimer());
 
         plannedIce = new List<IceAttribute>();
         addedIce = new List<IceAttribute>();
@@ -86,6 +88,8 @@ public class IceStandScript : MonoBehaviour
 
     public void StartMiniGame()
     {
+        if (plannedIce.Count == 0) return;
+
         if(miniGamePrefab == null)
         {
             addedIce.AddRange(plannedIce);
@@ -216,5 +220,18 @@ public class IceStandScript : MonoBehaviour
         startField.gameObject.SetActive(hide);
         infoField.gameObject.SetActive(!hide);
         if (hide) HoldButton.UnlockAll();
+    }
+
+    IEnumerator UpdateTimer()
+    {
+        if (clock == null) yield break;
+
+        while(clock.timeLeft > 0)
+        {
+            yield return new WaitForFixedUpdate();
+            clock.timeLeft -= Time.fixedDeltaTime;
+            clock.time += Time.fixedDeltaTime;
+        }
+        yield break;
     }
 }

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35632478c96cdb6449cc7a990872fa00, type: 3}
+  m_Name: Gull
+  m_EditorClassIdentifier: 
+  runSim: 0
+  stickyParent: {fileID: 0}
+  stickyCenter: {x: 0, y: 0}
+  stickyCount: 0
+  stickyRotation: 0
+  anecdote: "Das schie\xDFt den Vogel ab!"
+  description: "Reagiert bei Kontakt und hat ein Leben.\nWird daher zerst\xF6rt,
+    sobald es den Boden ber\xFChrt."
+  primSprite:
+    sprite: {fileID: 0}
+    dominance: -1000
+  prim_secSprite:
+    sprite: {fileID: 21300000, guid: a63c2a3d88656834c80355cc58e88c15, type: 3}
+    dominance: -999
+  secSprites:
+  - sprite: {fileID: 21300000, guid: a63c2a3d88656834c80355cc58e88c15, type: 3}
+    dominance: -999
+  scale: 1
+  mass: 1
+  shootPower: 12
+  life: 1
+  life_current: 0
+  explosionRange: 0
+  isMelange: 0
+  sticky: 0
+  onGround: 0
+  reactOnImpact: 1
+  growing: 0
+  endScale: 0
+  splitCount: 0
+  material: {fileID: 6200000, guid: 388809708ac198f48915904a3e261992, type: 2}
+  speed: 1
+  jumpForce: 1
+  agility: 1
+  instability: 1.05
+  upForce: 1
+  dropSpeed: 1

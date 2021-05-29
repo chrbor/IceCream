@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static ClockScript;
-
+using static CameraScript;
 public class GameManager : MonoBehaviour
 {
     public static GameManager manager;
@@ -24,8 +24,7 @@ public class GameManager : MonoBehaviour
     public static AudioListener mainListener;
     public static GameObject mainCamera;
     public static GameObject globalLight;
-
-    public static List<IceAttribute> iceDelivered;
+    public static GameObject mainCanvas;
 
     // Start is called before the first frame update
     void Start()
@@ -42,8 +41,6 @@ public class GameManager : MonoBehaviour
         mainListener = Camera.main.GetComponent<AudioListener>();
         mainCamera = Camera.main.gameObject;
         globalLight = GameObject.FindGameObjectWithTag("light");
-
-        iceDelivered = new List<IceAttribute>();
     }
 
     public static void PauseTheGame(bool pausing)

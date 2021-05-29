@@ -61,15 +61,15 @@ public class MiniGameScript : MonoBehaviour
                 primSpriteRenderer.sprite = attribute.primSprite.sprite;
                 primSpriteRenderer.sortingOrder = -i * 1000;
 
-                int j = 0;
-                foreach(var secSprite in attribute.secSprites)
+                
+                for(int j = 0; j < attribute.secSprites.Count; j++)
                 {
                     secSpriteObj = new GameObject("sec_" + j);
 
                     SpriteRenderer secSpriteRenderer = secSpriteObj.AddComponent<SpriteRenderer>();
-                    secSpriteRenderer.sprite = secSprite.sprite;
+                    secSpriteRenderer.sprite = attribute.secSprites[j].sprite;
                     secSpriteRenderer.sortingLayerName = "Ice";
-                    secSpriteRenderer.sortingOrder = -i * 1000 + j;
+                    secSpriteRenderer.sortingOrder = -i * 1000 + j + 1;
 
                     secSpriteObj.transform.parent = iceOnCone[i-1].transform;
                     secSpriteObj.transform.localPosition = Vector3.zero;

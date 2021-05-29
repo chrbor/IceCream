@@ -30,8 +30,9 @@ public class MiniIceScript : MonoBehaviour
             obj.transform.localPosition = Vector3.zero;
 
             secSprite = obj.AddComponent<SpriteRenderer>();
+            secSprite.sortingLayerName = "Ice";
             secSprite.sprite = attribute.secSprites[i].sprite;
-            secSprite.sortingOrder = id * -1000 + i;
+            secSprite.sortingOrder = id * -1000 + i + 1;
         }
     }
 

@@ -24,6 +24,8 @@ public class PPAccess : MonoBehaviour
         volume.sharedProfile.TryGet(out bloom);
         volume.sharedProfile.TryGet(out doF);
         volume.sharedProfile.TryGet(out colorAdj);
+
+        ResetPostProcess();
     }
 
     public static void ResetPostProcess()

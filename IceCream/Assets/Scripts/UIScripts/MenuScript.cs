@@ -7,6 +7,11 @@ using static PPAccess;
 
 public class MenuScript : MonoBehaviour
 {
+    private void Awake()
+    {
+        mainCanvas = transform.parent == null ? gameObject : transform.parent.gameObject;
+    }
+
     public void ExitGame()
     {
         Application.Quit(0);

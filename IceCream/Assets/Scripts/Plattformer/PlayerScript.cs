@@ -17,6 +17,7 @@ public class PlayerScript : MonoBehaviour
     private Rigidbody2D rb;
     private ProcMove pMove;
     private bool isMoving;
+    private bool jumpReady;
     [HideInInspector]
     public float angle { get; private set; }
     //[HideInInspector]
@@ -63,11 +64,12 @@ public class PlayerScript : MonoBehaviour
             Camera.main.transform.eulerAngles = new Vector3(0, 0, -angle);
         }
 
-        if (Mathf.Abs(angle) > thresh_run && !pauseMove && Physics2D.Raycast((Vector2)transform.position + Vector2.down, Vector2.right * Mathf.Sign(moveStrength), .6f, mask).collider == null)
+        if (Mathf.Abs(angle) > thresh_run && !pauseMove /*&& Physics2D.Raycast((Vector2)transform.position + Vector2.down, Vector2.right * Mathf.Sign(moveStrength), .6f, mask).collider == null*/)
         {
             isMoving = true;
             //RaycastHit2D hit = Physics2D.Raycast(transform.position + Vector3.up * 0.5f, Vector3.right * moveStrength, 1.5f, mask);
-            rb.position += Vector2.right * attribute.real_vel * moveStrength;
+            RaycastHit2D hit = Physics2D.Raycast((Vector2)transform.position + Vector2.down, new Vector2(moveStrength, 0), 1.4f, mask);
+            rb.position += Vector2.right * attribute.real_vel * moveStrength * (hit.collider == null ? 1 : (hit.distance * hit.distance - 1f));
             //if (hit.collider) rb.position += Vector2.up * 0.2f;
         }
     }
@@ -75,7 +77,7 @@ public class PlayerScript : MonoBehaviour
     private void Update()
     {
         //Springen:
-        if (Input.gyro.userAcceleration.z > thresh_jump && !procMove.falling && !pauseMove)
+        if (Input.gyro.userAcceleration.z > thresh_jump && procMove.groundDist < .6f && !pauseMove)
         {
             rb.velocity = new Vector2(rb.velocity.x, (Input.gyro.userAcceleration.z > thresh_jump_max ? 1 : Input.gyro.userAcceleration.z/thresh_jump_max) * attribute.jumpPower);
         }
@@ -83,8 +85,6 @@ public class PlayerScript : MonoBehaviour
     }
 
     /*
-    int holdHeight;
-    float y_hold;
     private void OnCollisionEnter2D(Collision2D other)
     {
         jumpReady = true;

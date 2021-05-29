@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using static GameManager;
 
 public class ProgressScript : MonoBehaviour
 {
     public static ProgressScript progressDisplay;
 
+    public static List<IceAttribute> iceDelivered;
     public static float progressPoints;
+
     public static float goal_Bronze, goal_Silver, goal_Gold;
 
     private float x_max;
@@ -16,19 +17,24 @@ public class ProgressScript : MonoBehaviour
     private RectTransform bronzeLimit, silverLimit;
 
     private Image Troph_Bronze, Troph_Silver, Troph_Gold;
+    private bool bronzeWin, silverWin, goldWin;
     private MenuScript menu;
+
+    private AnimationCurve smoothMove;
 
     // Start is called before the first frame update
     void Start()
     {
         progressDisplay = this;
+        iceDelivered = new List<IceAttribute>();
 
         menu = transform.parent.parent.GetComponent<MenuScript>();
+        smoothMove = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         //Muss später in Awake eingestellt werden:
-        goal_Bronze = 3;
-        goal_Silver = 5;
-        goal_Gold = 6;
+        goal_Bronze = 6;
+        goal_Silver = 8;
+        goal_Gold = 9;
 
         //Hole alle wichtigen elemente:
         Troph_Bronze = transform.GetChild(0).GetChild(0).GetComponent<Image>();
@@ -51,15 +57,41 @@ public class ProgressScript : MonoBehaviour
         Troph_Gold.color = troph_color;
     }
 
-    public void UpdateProgressDisplay(float progressToAdd)
+    public void UpdateProgressDisplay(IceAttribute attribute)
     {
-        progressPoints += progressToAdd;
+        iceDelivered.Add(attribute);
+        if(progressPoints > goal_Gold) { progressPoints += attribute.scale; return; }
+
+        progressPoints += attribute.scale;
         slider.value = progressPoints > goal_Gold ? 1 : progressPoints / goal_Gold;
-        if (progressPoints >= goal_Bronze) Troph_Bronze.color = Color.white;
-        if (progressPoints >= goal_Silver) Troph_Silver.color = Color.white;
-        if (progressPoints >= goal_Gold) Troph_Silver.color = Color.white;
+        if (!bronzeWin && progressPoints >= goal_Bronze) { bronzeWin = true; StartCoroutine(ShowTrophy(Troph_Bronze)); }
+        if (!silverWin && progressPoints >= goal_Silver) { silverWin = true; StartCoroutine(ShowTrophy(Troph_Silver)); }
+        if (!goldWin && progressPoints >= goal_Gold) { goldWin = true; StartCoroutine(ShowTrophy(Troph_Gold)); }
+
 
         if(progressPoints >= goal_Gold)
             menu.ChangeWinLoseMenu(true);
+    }
+
+    IEnumerator ShowTrophy(Image iTrophy)
+    {
+        float timeStep = Time.fixedDeltaTime / .5f;
+
+        //werde opaque und x1.5 so groß
+        Color stepColor = (1 - iTrophy.color.a) * timeStep * Color.black;
+        Vector3 diffScale = .5f * Vector3.one;
+        for (float count = 0; count < 1; count += timeStep)
+        {
+            iTrophy.color += stepColor;
+            iTrophy.transform.localScale = Vector3.one + diffScale * smoothMove.Evaluate(count);
+            yield return new WaitForFixedUpdate();
+        }
+        for (float count = 0; count < 1; count += timeStep)
+        {
+            iTrophy.transform.localScale = Vector3.one + diffScale * smoothMove.Evaluate(1 - count);
+            yield return new WaitForFixedUpdate();
+        }
+
+        yield break;
     }
 }

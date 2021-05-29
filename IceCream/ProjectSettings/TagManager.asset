@@ -27,9 +27,9 @@ TagManager:
   - TouchPlayer
   - PlayerTrigger
   - IceOnly
-  - 
-  - 
-  - 
+  - player_col
+  - plattform
+  - enemy
   - 
   - 
   - 

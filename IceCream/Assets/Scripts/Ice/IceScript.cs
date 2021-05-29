@@ -46,8 +46,11 @@ public class IceScript : MonoBehaviour, ICone
         StartCoroutine(UpdateLife());
     }
 
+    bool isGettingDestroyed = false;
     private void OnDestroy()
     {
+        isGettingDestroyed = true;
+        //if(cone != null) cone.blockCone();
         ResetTouch -= ResetTouchingCone;
     }
 
@@ -56,6 +59,8 @@ public class IceScript : MonoBehaviour, ICone
     public int GetID() => id;
     public void SetID(int _id)
     {
+        //if (isGettingDestroyed) return;
+
         id = _id;
         sprite.sortingOrder = -id * 1000;
         Transform Ttex = transform.GetChild(transform.childCount - 1);
@@ -111,6 +116,7 @@ public class IceScript : MonoBehaviour, ICone
             secSprite.sortingOrder = sprite.sortingOrder + ++i;
         }
     }
+    public bool GettingDestroyed() => isGettingDestroyed;
 
     IEnumerator RunSim()
     {
@@ -165,6 +171,8 @@ public class IceScript : MonoBehaviour, ICone
 
         yield break;
     }
+    [HideInInspector]
+    public bool resetUpdateLife;
     IEnumerator UpdateLife()
     {
         float timeCount;
@@ -180,7 +188,7 @@ public class IceScript : MonoBehaviour, ICone
 
                 timeCount = 0;
                 timeGoal = _attribute.life_current * .2f;
-                while (_attribute.life_current > 0 && id < 0 && (timeCount < timeGoal || _attribute.life_current > 10))
+                while (_attribute.life_current > 0 && id < 0 && (timeCount < timeGoal || _attribute.life_current > 10) && !resetUpdateLife)
                 {
                     if (pauseGame) yield return new WaitWhile(() => pauseGame);
 
@@ -194,12 +202,14 @@ public class IceScript : MonoBehaviour, ICone
 
                 timeCount = 0;
                 timeGoal = _attribute.life_current * .025f;
-                while (_attribute.life_current > 0 && id < 0 && timeCount < timeGoal)
+                while (_attribute.life_current > 0 && id < 0 && timeCount < timeGoal && !resetUpdateLife)
                 {
                     timeCount += Time.fixedDeltaTime;
                     _attribute.life_current -= Time.fixedDeltaTime;
                     yield return new WaitForFixedUpdate();
                 }
+
+                if(resetUpdateLife) { resetUpdateLife = false; yield return new WaitForSeconds(.25f); continue; }
 
                 //Reagiere nur bei Lebensabzug:
                 GetComponent<Collider2D>().GetContacts(new List<Collider2D>());
@@ -252,24 +262,36 @@ public class IceScript : MonoBehaviour, ICone
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (isGettingDestroyed) return;
         int _layer = other.gameObject.layer;
+
         if(id > 0)//Eis ist auf der Waffel
         {
-            if (other.tag == "Col" || _layer == 8 || _layer == 12 || _layer == 13 || _layer == 19) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
+            if (other.tag == "Col" || _layer == 8 || (_layer > 11 && _layer < 20)) return;//Falls von einem anderen Eis/Waffel getroffen, dann ignoriere es: Eingehendes Eis handelt sich selbst
 
             //Eis wird runtergeschubst:
-            Debug.Log(name + " leaving: posInCone: " + posInCone);
+            //Debug.Log(name + " leaving: posInCone: " + posInCone);
+            if (_attribute.explosionRange > 0)
+            {
+                GameObject explsn = Instantiate(iceManager.explosionPrefab, transform.position, Quaternion.identity);
+                explsn.transform.localScale = Vector3.one * _attribute.explosionRange * transform.localScale.x * .5f;
+                explsn.GetComponent<ExplosionScript>().exclusions.Add(gameObject);
+            }
+
+            cone.blockCone();
             cone.RemoveIce(id);
             RemoveFromCone();
             fillingSpace = false;//beende evtl filling
             StartCoroutine(PushIceOut());
+            cScript.DoShake(2000);
             return;
         }
         else//Eis fliegt durch die Gegend
         {
-            if (block_ice_enter || _layer == 13 || _layer == 14) return;//ist in der nicht-berühr-Phase oder von der Explosion getroffen
-
-            if (_layer != 8 && _layer != 12) //Weder Eis noch Cone getroffen
+            if (block_ice_enter || _layer == 13 || _layer == 14 ) return;//ist in der nicht-berühr-Phase oder von einem Effekt betroffen
+            
+            //Weder Eis noch Cone getroffen:
+            if (_layer != 8 && _layer != 12) 
             {
                 //Hier den Code einfügen, der beschreibt, was passiert, wenn fliegendes Eis in Kontakt mit der Umgebung kommt: 
 
@@ -345,7 +367,8 @@ public class IceScript : MonoBehaviour, ICone
             }
 
             ICone other_Ice = other.GetComponent<ICone>();
-            if (other_Ice.GetID() < 0) //falls das getroffene Eis nicht auf der waffel ist
+            //falls das getroffene Eis nicht auf der waffel ist:
+            if (other_Ice.GetID() < 0) 
             {
 
                 //sticky:

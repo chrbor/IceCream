@@ -47,4 +47,4 @@ MonoBehaviour:
   agility: 0.985
   instability: 0.95
   upForce: 0.98
-  dropSpeed: 1.05
+  dropSpeed: 1.01

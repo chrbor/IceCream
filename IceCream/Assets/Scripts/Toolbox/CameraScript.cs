@@ -5,6 +5,7 @@ using UnityEngine;
 public class CameraScript : MonoBehaviour
 {
     public static CameraScript cScript;
+    public static Vector2 camWindow;
 
     public GameObject target;
     [Range(0, 0.1f)]
@@ -14,6 +15,10 @@ public class CameraScript : MonoBehaviour
     public AudioSource aSrc;
 
     private AnimationCurve curve;
+
+    private bool shaking;
+    int shakeCount;
+    float shakeImpact;
 
     // Start is called before the first frame update
     void Awake()
@@ -26,18 +31,35 @@ public class CameraScript : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        camWindow = new Vector2(Camera.main.aspect, 1) * Camera.main.orthographicSize;
+
         if (target == null) return;
 
         transform.position += (Vector3)(strength * ((Vector2)(target.transform.position - transform.position) + offset)); 
     }
 
-    public IEnumerator Shake()
+    public void DoShake(float reduction = 1000)
     {
-        for (int i = 40; i > 0; i--)
+        if (shaking)
         {
-            transform.position += (Vector3)((Vector2)Random.insideUnitSphere * i * Camera.main.orthographicSize / 1000);
+            shakeCount += 10;
+            shakeImpact = (shakeImpact + Camera.main.orthographicSize / reduction) / 2;
+            return;
+        }
+        shaking = true;
+        shakeCount = 40;
+        shakeImpact = Camera.main.orthographicSize / reduction;
+        StartCoroutine(Shake());
+    }
+
+    IEnumerator Shake()
+    {
+        for (; shakeCount > 0; shakeCount--)
+        {
+            transform.position += (Vector3)(Random.insideUnitCircle * shakeCount * shakeImpact);
             yield return new WaitForEndOfFrame();
         }
+        shaking = false;
         yield break;
     }
 
