@@ -51,12 +51,16 @@ public class GoalScript : MonoBehaviour
         endPoint += (Vector2)ice_vel * jumpTime * .5f;
         ice_vel *= Time.fixedDeltaTime;
 
-        //Hier Punkte hinzufügen:
 
-        //Destroy(iceScript);
+
 
         Vector2 startPos = jumper.transform.position;
         Vector2 diff = endPoint - (Vector2)jumper.transform.position + Vector2.down;
+
+        Animator anim = jumper.transform.GetChild(0).GetComponent<Animator>();
+        anim.Play("Jump", 0);
+        jumper.transform.localScale = Mathf.Abs(jumper.transform.localScale.x) * Vector3.one * Mathf.Sign(diff.x);
+
         //Fliege zum Punkt:
         for(float count = 0; count < 1; count += timeStep)
         {
@@ -69,12 +73,16 @@ public class GoalScript : MonoBehaviour
         Vector2 tmpPos = jumper.transform.position;
         diff *= new Vector2(.5f, -1);
         //Falle auf y-start zurück
-        for (float count = 0; count < 1; count += timeStep)
+        float fallStep = timeStep * 2;
+        for (float count = 0; count < 1; count += fallStep)
         {
             jumper.transform.position = tmpPos + new Vector2(diff.x * count, (1 - (1 - count) * (1 - count)) * diff.y);
             yield return new WaitForFixedUpdate();
         }
+
         //Laufe zum Start zurück:
+        anim.SetBool("moving", true);
+        jumper.transform.localScale = new Vector3(-jumper.transform.localScale.x, jumper.transform.localScale.y, 1) ;//transform.localScale.x * Vector3.one * Mathf.Sign(diff.x);
         tmpPos = jumper.transform.position;
         diff *= new Vector2( 3 * timeStep, 0);
         for (float count = 0; count < 1; count += timeStep)
@@ -85,6 +93,7 @@ public class GoalScript : MonoBehaviour
 
         jumper.transform.position = startPos;
         goalerList.Add(jumper);
+        anim.SetBool("moving", false);
         yield break;
     }
 }

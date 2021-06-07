@@ -11,11 +11,9 @@ public interface ICone
     void ResetAttributes();
     Vector2 Get_posInCone();
     void Set_posInCone(Vector2 position);
-    Vector2 Get_diffPosToAdd();
     void Set_prevIce(Rigidbody2D _prev);
     string Get_name();
     Transform Get_transform();
     bool GettingDestroyed();
-    IEnumerator FillSpace(Vector2 endPos);
     IEnumerator ShootIce(ICone prev);
 }

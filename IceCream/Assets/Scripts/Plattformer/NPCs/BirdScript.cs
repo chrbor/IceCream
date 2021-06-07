@@ -23,12 +23,16 @@ public class BirdScript : MonoBehaviour
 
     protected Animator anim;
     protected AudioSource aSrc;
+    private Material mat;
+    private float timeStep;
 
-    // Start is called before the first frame update
     protected virtual void Start()
     {
         anim = GetComponent<Animator>();
         aSrc = GetComponent<AudioSource>();
+        mat = new Material(transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().material);
+        transform.GetChild(0).GetChild(0).GetComponent<SpriteRenderer>().material = mat;
+        timeStep = Time.deltaTime / .5f;
 
         x_center = transform.position.x + offset;
         StartCoroutine(FlyAround());
@@ -62,27 +66,37 @@ public class BirdScript : MonoBehaviour
         if(other.layer == 8 && other.GetComponent<IceScript>().id > 0)
         {
             invincible = true;
-            yield return new WaitForSeconds(.25f);
+            for(float count = 0; count < 1; count += timeStep)
+            {
+                mat.SetFloat("_Strength", count);
+                yield return new WaitForEndOfFrame();
+            }
             invincible = false;
             yield break;
         }
 
-        //anim.SetTrigger("Hit");
+        anim.SetTrigger("Hit");
         //aSrc.Play();
 
         pauseMovement = true;
         invincible = true;
 
+        if (other.layer == 14) life = 0;//Explosion? => Tod
         if (--life > 0)
         {
-            yield return new WaitForSeconds(.25f);
+            for (float count = 1; count > 0; count -= timeStep)
+            {
+                mat.SetFloat("_Strength", count);
+                yield return new WaitForEndOfFrame();
+            }
             pauseMovement = false;
             invincible = false;
             yield break;
         }
+
         GetComponent<Collider2D>().enabled = false;
 
-        if(other.layer == 8)//Eis
+        if (other.layer == 8)//Eis
         {
             //Vogel verwandelt sich in eine Eiskugel:
             CreateIce(other.GetComponent<IceScript>());

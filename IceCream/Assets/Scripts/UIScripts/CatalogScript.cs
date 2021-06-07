@@ -23,9 +23,9 @@ public class CatalogScript : MonoBehaviour
         if (initialized) return;
         initialized = true;
 
-        buttonField = transform.GetChild(0).GetChild(0).GetComponent<CanvasGroup>();
-        infoField = transform.GetChild(0).GetChild(1).GetComponent<CanvasGroup>();
-        placeHolder = transform.GetChild(0).GetChild(2).GetComponent<CanvasGroup>();
+        buttonField = transform.GetChild(1).GetChild(0).GetComponent<CanvasGroup>();
+        infoField = transform.GetChild(1).GetChild(1).GetComponent<CanvasGroup>();
+        placeHolder = transform.GetChild(1).GetChild(2).GetComponent<CanvasGroup>();
 
         Transform Tinfo = infoField.transform;
         title = Tinfo.GetChild(0).GetComponent<Text>();
@@ -57,6 +57,7 @@ public class CatalogScript : MonoBehaviour
         }
         else
         {
+            Debug.Log("closeCat");
             anim.enabled = true;
             anim.Play("CloseCatalog");
         }
@@ -65,7 +66,7 @@ public class CatalogScript : MonoBehaviour
 
     IEnumerator CloseAnim(bool opening)
     {
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(1.75f);
         anim.enabled = false;
         if (!opening) gameObject.SetActive(false);
     }

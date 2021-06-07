@@ -7,6 +7,7 @@ using static Helper;
 public class ParasolScript : MonoBehaviour
 {
     public bool isOpen;
+    private bool block;
 
     Animator anim;
     AudioSource aSrc;
@@ -20,7 +21,7 @@ public class ParasolScript : MonoBehaviour
 
         if (isOpen)
         {
-            //anim.Play("open");
+            anim.SetBool("opened", true);
             col.offset = Vector2.up * 4;
             col.size = new Vector2(4, 1);
         }
@@ -28,6 +29,8 @@ public class ParasolScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (block) return;
+
         int _layer = other.gameObject.layer;
         if (!isOpen)
         {
@@ -38,7 +41,7 @@ public class ParasolScript : MonoBehaviour
         if(_layer != 8)//Falls nicht vom Eis getroffen, dann mache den Schirm wieder zu
             CloseParasol();
         //else
-        //    anim.SetTrigger("Squeesh");
+            anim.SetTrigger("squeesh");
 
         Vector2 diff = transform.position - Camera.main.transform.position;
         if (Mathf.Abs(diff.x) < camWindow.x && Mathf.Abs(diff.y) < camWindow.y)
@@ -57,8 +60,8 @@ public class ParasolScript : MonoBehaviour
     }
 
     private void OpenParasol()
-    {
-        //anim.SetTrigger("Open");
+    {       
+        anim.SetBool("opened", true);
         col.offset = Vector2.up * 4.5f;
         col.size = new Vector2(4, 1);
         isOpen = true;
@@ -66,9 +69,18 @@ public class ParasolScript : MonoBehaviour
 
     private void CloseParasol()
     {
-        //anim.SetTrigger("Close");
+        StartCoroutine(Cooldown());
+        anim.SetBool("opened", false);
         col.offset = Vector2.up * 2.5f;
         col.size = new Vector2(1, 5);
         isOpen = false;
+    }
+
+    IEnumerator Cooldown()
+    {
+        block = true;
+        yield return new WaitForSeconds(1);
+        block = false;
+        yield break;
     }
 }

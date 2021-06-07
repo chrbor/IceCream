@@ -49,6 +49,12 @@ public class ClockScript : MonoBehaviour
         StartCoroutine(RunTimer());
     }
 
+    private bool fastForwarding;
+    public void FastForward(bool isOn)
+    {
+        fastForwarding = isOn;
+    }
+
     IEnumerator RunTimer()
     {
         while(run && timeLeft > 0)
@@ -64,7 +70,7 @@ public class ClockScript : MonoBehaviour
 
             //yield return new WaitForSeconds(1);
             yield return new WaitForFixedUpdate();
-            timeLeft -= Time.fixedDeltaTime;
+            timeLeft -= fastForwarding ? 1 : Time.fixedDeltaTime;
             time += Time.fixedDeltaTime;
         }
 

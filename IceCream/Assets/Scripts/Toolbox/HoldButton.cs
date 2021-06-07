@@ -6,7 +6,8 @@ using System.Collections;
 
 public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    public UnityEvent OnTipped, OnHold;
+    public bool useHold = true;
+    public UnityEvent OnTipped, OnHold, OnPressed, OnReleased;
 
     public static event UnityAction<bool> lockButtons;
     public static event UnityAction unlockButtons;
@@ -61,7 +62,8 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             //Do stuff on press:
             //image.color = new Color(1, 1, 1, 0.75f);
             image.sprite = clickedSprite;
-            StartCoroutine(HoldCounter());
+            OnPressed.Invoke();
+            if(useHold) StartCoroutine(HoldCounter());
         }
     }
     public virtual void OnPointerUp(PointerEventData eventData)
@@ -75,6 +77,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
             image.sprite = normal;
             OnTipped.Invoke();
         }
+        OnReleased.Invoke();
     }
 
     bool counting;

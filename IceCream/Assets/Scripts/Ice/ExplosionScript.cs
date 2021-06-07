@@ -42,7 +42,7 @@ public class ExplosionScript : MonoBehaviour
         if (exclusions.Contains(other.gameObject) || rb_other == null) return;
 
         Vector2 diff = other.transform.position - transform.position;
-        float distFactor = transform.localScale.x / (1 + diff.sqrMagnitude);
+        float distFactor = transform.localScale.x / (2 + diff.sqrMagnitude);
 
         if (other.gameObject.layer == 8)
         {

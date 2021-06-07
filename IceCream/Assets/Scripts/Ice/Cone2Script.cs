@@ -19,6 +19,8 @@ public class Cone2Script : MonoBehaviour, ICone
     public float helpForce = 40;
     public Vector2 coneGravity;
     public Vector2 tilt_move;
+    public float dropSpeed;
+
     [HideInInspector]
     public Vector2 windForce;
 
@@ -28,11 +30,8 @@ public class Cone2Script : MonoBehaviour, ICone
     [HideInInspector]
     public List<ICone> iceTower = new List<ICone>();
 
-    public float fillTime;
-    [HideInInspector]
-    public float fillTime_real;
-
     public float camSize;
+
 
     private void Awake()
     {
@@ -41,7 +40,6 @@ public class Cone2Script : MonoBehaviour, ICone
 
         rb = GetComponent<Rigidbody2D>();
         prevPosition = rb.position;
-        fillTime_real = Time.fixedDeltaTime/fillTime;
 
         StartCoroutine(StartCone());
 
@@ -61,11 +59,9 @@ public class Cone2Script : MonoBehaviour, ICone
     public void ResetAttributes() { }
     public Vector2 Get_posInCone() => Vector2.zero;
     public void Set_posInCone(Vector2 position) { /*redundant*/}
-    public Vector2 Get_diffPosToAdd() => Vector2.zero;
     public void Set_prevIce(Rigidbody2D _prev) { /*redundant*/}
     public Vector2 Get_virtPosInCone() => Vector2.zero;
     public void Set_virtPosInCone(Vector2 position) { }
-    public IEnumerator FillSpace(Vector2 endPos) { yield break; }
     public IEnumerator ShootIce(ICone prev) { yield break; }
     public Rigidbody2D Get_rb() => rb;
     public string Get_name() => name;
@@ -111,10 +107,6 @@ public class Cone2Script : MonoBehaviour, ICone
     {
         //if (iceTower[id_removed].GettingDestroyed()) return;
 
-        if(id_removed < iceTower.Count - 1) StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed-1].Get_posInCone()));
-        StartCoroutine(iceTower[id_removed - 1].FillSpace(iceTower[id_removed - 2].Get_posInCone()));
-
-
         for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 2);
         iceTower[id_removed - 1].SetID(id_removed - 2);
 
@@ -126,69 +118,10 @@ public class Cone2Script : MonoBehaviour, ICone
     }
     public void RemoveIce(int id_removed)
     {
-        //if (iceTower[id_removed].GettingDestroyed()) return;
-
-        if (id_removed < iceTower.Count - 1)
-        {
-            StartCoroutine(FillSpace(id_removed, iceTower[id_removed+1].Get_posInCone(), iceTower[id_removed].Get_posInCone()));
-            //StartCoroutine(iceTower[id_removed + 1].FillSpace(iceTower[id_removed].Get_posInCone() + iceTower[id_removed].Get_diffPosToAdd()));
-            for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
-        }
-
+        for (int i = iceTower.Count - 1; i > id_removed; i--) iceTower[i].SetID(i - 1);
         iceTower[id_removed].Get_transform().parent = null;
         iceTower.RemoveAt(id_removed);
     }
-
-
-
-    class FillInfoClass
-    {
-        public bool filling;
-        public bool overwriting;
-        public Vector2 diffPosToAdd;
-
-        public FillInfoClass()
-        {
-            filling = false;
-            overwriting = false;
-            diffPosToAdd = new Vector2();
-        }
-    }
-    List<FillInfoClass> fillInfos = new List<FillInfoClass>();
-    IEnumerator FillSpace(int id, Vector2 posInCone, Vector2 _endPos)
-    {
-        Debug.Log("id: " + id + "\nposInCone: " + posInCone + ", endPos: " + _endPos);
-        //Aktualisiere die Range der fillInfos;
-        for (int i = fillInfos.Count; i < id; i++) fillInfos.Add(new FillInfoClass());
-        id--;//null ist cone
-
-        //Überlagere vorherige Lückenfüller:
-        if (fillInfos[id].filling)
-        {
-            fillInfos[id].overwriting = true;
-            yield return new WaitUntil(() => !fillInfos[id].overwriting);
-            //Debug.Log(name + " overwritten to: " + _endPos);
-        }
-        else fillInfos[id].filling = true;
-
-        //Lerp zur nächsten position
-        fillInfos[id].diffPosToAdd += _endPos - posInCone;//previous: +=
-        Vector2 diffPosStep = fillInfos[id].diffPosToAdd * cone.fillTime_real;
-        for (float count = 0; count < 1 && !fillInfos[id].overwriting && fillInfos[id].filling && iceTower.Count > id+1; count += cone.fillTime_real)
-        {
-            if (pauseGame) yield return new WaitWhile(() => pauseGame);
-            for (int i = id+1; i < cone.iceTower.Count; i++) cone.iceTower[i].Set_posInCone(cone.iceTower[i].Get_posInCone() + diffPosStep);
-            fillInfos[id].diffPosToAdd -= diffPosStep;
-            yield return new WaitForFixedUpdate();
-        }
-
-        yield return new WaitForFixedUpdate();
-        //Debug.Log(name + " stopped: overwrite: " + fillOverwrite + ", fillingSpace: " + fillingSpace + ", posInCone: " + posInCone + ", virt: " + virtPosInCone);
-        if (!fillInfos[id].overwriting) { fillInfos[id].filling = false; fillInfos[id].diffPosToAdd = Vector2.zero; }
-        fillInfos[id].overwriting = false;
-        yield break;
-    }
-
 
 
     //public void FiringIce() => StartCoroutine(ShootIce());
@@ -199,7 +132,6 @@ public class Cone2Script : MonoBehaviour, ICone
         StartCoroutine(iceTower[i].ShootIce(iceTower[i - 1]));
         iceTower.RemoveAt(i);
     }
-
     bool block_shoot;
     IEnumerator ShootIce()
     {
@@ -294,6 +226,7 @@ public class Cone2Script : MonoBehaviour, ICone
         for(int i = iceTower.Count -1; i >= 2; i--)
         {
             //Manueller-Ansatz:
+            if (iceTower[i].GetID() < 0) continue;
 
             //Sin-Wave:
             //float weight = iceTower.Count == 3? 1 : Mathf.Sin(Mathf.PI * (i - 2) / (2 * (iceTower.Count - 3f)));
@@ -327,14 +260,37 @@ public class Cone2Script : MonoBehaviour, ICone
                 rot = rot_cntct * weight * 1 * (1 - weight);
 
             //Stelle sicher, dass der Kontakt zur Vorherigen Kugel aufrecht erhalten wird
-            if (i != iceTower.Count-1 && (Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > .65) rot = rot_prev;
+            if (i != iceTower.Count-1 && (Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > (iceTower[i + 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .325f) rot = rot_prev;
 
             //Rotiere:
             posInCone = iceTower[i].Get_posInCone();
             Vector4 rot_Matrix = GetRotationMatrix(weight * rot * Mathf.Deg2Rad);
-            iceTower[i].Set_posInCone(new Vector2(rot_Matrix.x * posInCone.x + rot_Matrix.y * posInCone.y,
-                                                  rot_Matrix.z * posInCone.x + rot_Matrix.w * posInCone.y));
+            posInCone = new Vector2(rot_Matrix.x * posInCone.x + rot_Matrix.y * posInCone.y,
+                                    rot_Matrix.z * posInCone.x + rot_Matrix.w * posInCone.y);
             rot_prev = rot;
+
+            //Aktualisiere y_position auf der Waffel:
+            Vector2 diffToPrev = iceTower[i - 1].Get_transform().position - iceTower[i].Get_transform().position;
+            float scaleFactor = (iceTower[i - 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .35f;//formerly /2 *.65f
+            if(diffToPrev.sqrMagnitude > scaleFactor * scaleFactor)
+            {
+                posInCone += diffToPrev.normalized * dropSpeed;
+            }
+
+
+            iceTower[i].Set_posInCone(posInCone);
+        }
+
+        //Aktualisiere y_position der ersten Eiskugel auf der Waffel:
+        if(iceTower.Count > 1)
+        {
+            iceTower[1].SetID(1);
+            Vector2 diffToPrev = Vector3.up * .65f - iceTower[1].Get_transform().localPosition;
+            if (diffToPrev.sqrMagnitude > (1 + iceTower[1].Get_attribute().scale) * .35f)//formerly /2 *.65f
+            {
+                iceTower[1].Set_posInCone(Vector3.up * (iceTower[1].Get_posInCone() + diffToPrev.normalized * dropSpeed));
+            }
+            else iceTower[1].Set_posInCone(Vector3.up * (1 + iceTower[1].Get_attribute().scale * .35f));
         }
     }
 }

@@ -12,6 +12,8 @@ public class WinLoseScript : MonoBehaviour
     RectTransform tower, bronzeLimit, silverLimit, goldLimit;
     bool bronzeWin, silverWin, goldWin;
 
+
+    public Sprite losesprite, loseMesssage, bronzeSprite, bronzeMessage, silverSprite, silverMessage, goldSprite, goldMessage;
     public AnimationCurve dropSpeed;
     private AnimationCurve smoothMove;
 
@@ -20,9 +22,9 @@ public class WinLoseScript : MonoBehaviour
     {
         smoothMove = AnimationCurve.EaseInOut(0, 0, 1, 1);
         dropSpeed.MoveKey(1, new Keyframe(.5f, Mathf.Clamp(.5f + .2f * iceDelivered.Count, 1, 10)));
-        buttonsGroup = transform.GetChild(1).GetComponent<CanvasGroup>();
-        titleGroup = transform.GetChild(2).GetComponent<CanvasGroup>();
-        messageGroup = transform.GetChild(3).GetComponent<CanvasGroup>();
+        titleGroup = transform.GetChild(1).GetComponent<CanvasGroup>();
+        messageGroup = transform.GetChild(2).GetComponent<CanvasGroup>();
+        buttonsGroup = transform.GetChild(3).GetComponent<CanvasGroup>();
 
         tower = transform.GetChild(0).GetComponent<RectTransform>();
         bronzeLimit = tower.transform.GetChild(1).GetComponent<RectTransform>();
@@ -81,7 +83,7 @@ public class WinLoseScript : MonoBehaviour
         //Zoome heraus
         timeStep = Time.fixedDeltaTime / 2;
         Vector2 startPos = tower.anchoredPosition;
-        Vector2 diffPos = Vector2.down * (tower.anchoredPosition.y / 2 - 100);
+        Vector2 diffPos = Vector2.down * (tower.anchoredPosition.y / 2 - 0);
         Vector3 diffScale = Vector3.one * (yPos_current > 600 ? .75f - yPos_current / 600 : 0);
         for(float count = 0; count < 1; count += timeStep)
         {
@@ -93,20 +95,23 @@ public class WinLoseScript : MonoBehaviour
         //Setze Message und Title:
         if(yPos_current < bronzeLimit.anchoredPosition.y)
         {
-            //titleGroup.GetComponent<Image>().sprite = ;
-            //messageGroup.GetComponent<Image>().sprite = ;
+            titleGroup.GetComponent<Image>().sprite = losesprite;
+            messageGroup.GetComponent<Image>().sprite = loseMesssage;
         }
         else if(yPos_current < silverLimit.anchoredPosition.y)
         {
-
+            titleGroup.GetComponent<Image>().sprite = bronzeSprite;
+            messageGroup.GetComponent<Image>().sprite = bronzeMessage;
         }
         else if(yPos_current < goldLimit.anchoredPosition.y)
         {
-
+            titleGroup.GetComponent<Image>().sprite = silverSprite;
+            messageGroup.GetComponent<Image>().sprite = silverMessage;
         }
         else//Perfekter score:
         {
-
+            titleGroup.GetComponent<Image>().sprite = goldSprite;
+            messageGroup.GetComponent<Image>().sprite = goldMessage;
         }
 
         //Zeige Buttons und Title:

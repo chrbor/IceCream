@@ -6,6 +6,13 @@ using static ProgressScript;
 
 public class GoalerScript : MonoBehaviour
 {
+    Animator anim;
+
+    private void Start()
+    {
+        anim = transform.GetChild(0).GetComponent<Animator>();
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         StartCoroutine(EatIce(other.GetComponent<IceScript>()));
@@ -23,6 +30,7 @@ public class GoalerScript : MonoBehaviour
                 iceScript.RemoveFromCone();
 
                 progressDisplay.UpdateProgressDisplay(iceScript.Get_attribute());
+                anim.SetTrigger("squeesh");
 
                 yield return new WaitForSeconds(.2f);
             }           

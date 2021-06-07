@@ -6,7 +6,7 @@ using static Helper;
 public class ProcMove : MonoBehaviour
 {
     static int mask = (1 << 13) | (1 << 11) | (1 << 21) | (1 << 10);
-    static int procAnimMask = (1 << 11) | (1 << 10);
+    static int procAnimMask = (1 << 11) | (1 << 10) | (1 << 21);
     private Animator anim;
     bool onGround = true;
     [HideInInspector]

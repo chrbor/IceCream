@@ -32,9 +32,9 @@ public class ProgressScript : MonoBehaviour
         smoothMove = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
         //Muss später in Awake eingestellt werden:
-        goal_Bronze = 6;
-        goal_Silver = 8;
-        goal_Gold = 9;
+        goal_Bronze = 3;
+        goal_Silver = 4;
+        goal_Gold = 5;
 
         //Hole alle wichtigen elemente:
         Troph_Bronze = transform.GetChild(0).GetChild(0).GetComponent<Image>();

@@ -75,7 +75,6 @@ public class IceScript : MonoBehaviour, ICone
     public Rigidbody2D Get_rb() => rb;
     public Vector2 Get_posInCone() => posInCone;
     public void Set_posInCone(Vector2 position) => posInCone = position;
-    public Vector2 Get_diffPosToAdd() => diffPosToAdd;
     public void Set_prevIce(Rigidbody2D _prev) { prevIce = _prev; }
     //public Vector2 Get_virtPosInCone() => virtPosInCone;
     //public void Set_virtPosInCone(Vector2 position) => virtPosInCone = position;
@@ -281,7 +280,6 @@ public class IceScript : MonoBehaviour, ICone
             cone.blockCone();
             cone.RemoveIce(id);
             RemoveFromCone();
-            fillingSpace = false;//beende evtl filling
             StartCoroutine(PushIceOut());
             cScript.DoShake(2000);
             return;
@@ -530,7 +528,7 @@ public class IceScript : MonoBehaviour, ICone
         //Gebe entsprechend der Kollision dem Eis eine Ausgangsgeschwindigkeit:
         RaycastHit2D hit = Physics2D.CircleCast(transform.position, transform.localScale.x / 2, Vector2.up, 666, 1 << 8);
         Vector2 diff = (hit.point - rb.position);
-        Vector2 vel_other = hit.collider.GetComponent<Rigidbody2D>() != null ? hit.collider.GetComponent<Rigidbody2D>().velocity : Vector2.zero;
+        Vector2 vel_other = hit.collider != null && hit.collider.GetComponent<Rigidbody2D>() != null ? hit.collider.GetComponent<Rigidbody2D>().velocity : Vector2.zero;
         Vector2 vel = RotToVec(2 * Mathf.Atan2(diff.y, diff.x) - Mathf.Atan2(vel_other.y-cone.rb.velocity.y, vel_other.x-cone.rb.velocity.x)) * rb.velocity.magnitude;
         //Debug.Log("vel: " + vel + ", pos: " + transform.position + "\nparent: " + transform.parent);
         //Debug.Break();
@@ -564,36 +562,6 @@ public class IceScript : MonoBehaviour, ICone
         Camera.main.orthographicSize = cone.camSize + .3f * coneIceCount;
     }
 
-    bool fillingSpace, fillOverwrite;
-    Vector2 diffPosToAdd;
-    public IEnumerator FillSpace(Vector2 _endPos)
-    {
-        //Überlagere vorherige Lückenfüller:
-        if(fillingSpace)
-        {
-            fillOverwrite = true;
-            yield return new WaitUntil(() => !fillOverwrite);
-            //Debug.Log(name + " overwritten to: " + _endPos);
-        }
-        fillingSpace = true;
-
-        //Lerp zur nächsten position
-        diffPosToAdd = _endPos - posInCone;//previous: +=
-        Vector2 diffPosStep = diffPosToAdd * cone.fillTime_real;
-        for (float count = 0; count < 1 && !fillOverwrite && fillingSpace && id > 0; count += cone.fillTime_real)
-        {
-            if (pauseGame) yield return new WaitWhile(() => pauseGame);
-            for (int i = id; i < cone.iceTower.Count; i++) cone.iceTower[i].Set_posInCone(cone.iceTower[i].Get_posInCone() + diffPosStep);
-            diffPosToAdd -= diffPosStep;
-            yield return new WaitForFixedUpdate();
-        }
-
-        yield return new WaitForFixedUpdate();
-        //Debug.Log(name + " stopped: overwrite: " + fillOverwrite + ", fillingSpace: " + fillingSpace + ", posInCone: " + posInCone + ", virt: " + virtPosInCone);
-        if (!fillOverwrite) { fillingSpace = false; diffPosToAdd = Vector2.zero; }
-        fillOverwrite = false;
-        yield break;
-    }
     IEnumerator Set_sticky(IceAttribute attribute)
     {
         bool isSticky = attribute.sticky;

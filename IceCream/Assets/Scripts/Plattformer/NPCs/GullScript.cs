@@ -26,13 +26,13 @@ public class GullScript : BirdScript
     IEnumerator Attack(GameObject other)
     {
         //Notice-Animation:
-        //anim.Play("notice");
+        anim.Play("Notice");
         pauseMovement = true;
 
         Vector2 startPos = transform.position;
         Vector2 currentPos = startPos;
         Vector2 diff = (Vector2)other.transform.position - currentPos;
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(1);
 
         if (invincible) { pauseMovement = false; yield break; }
 
@@ -73,6 +73,7 @@ public class GullScript : BirdScript
             yield return new WaitForFixedUpdate();
         }
         transform.rotation = Quaternion.identity;
+        anim.Play("Fly");
         yield break;
     }
 }

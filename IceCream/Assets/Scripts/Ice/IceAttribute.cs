@@ -179,7 +179,7 @@ public class IceAttribute : ScriptableObject
         cone.tilt_move *= agility;
         cone.coneGravity *= instability;
         cone.helpForce *= upForce;
-        cone.fillTime_real /= dropSpeed;
+        cone.dropSpeed *= dropSpeed;
 
         if (pAttribute == null) return;
         pAttribute.velocity *= speed;
@@ -192,7 +192,7 @@ public class IceAttribute : ScriptableObject
         cone.tilt_move /= agility;
         cone.coneGravity /= instability;
         cone.helpForce /= upForce;
-        cone.fillTime_real *= dropSpeed;
+        cone.dropSpeed /= dropSpeed;
 
         if (pAttribute == null) return;
         pAttribute.velocity /= speed;
