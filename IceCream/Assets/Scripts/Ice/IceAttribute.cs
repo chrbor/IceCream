@@ -51,7 +51,8 @@ public class IceAttribute : ScriptableObject
     public SpriteData prim_secSprite;
     [HideInInspector]
     public List<SpriteData> secSprites;//aktuelle(r) Sprite(s) der Dekoration der Eiskugel, können mehrere sein
-
+    [Tooltip("Farbe für Effekte wie zB Spritzer")]
+    public Color color;
 
     [Header("Aktiv (Effekte auf die Kugel):")]
     [Tooltip("Größe des Eis")]
@@ -107,6 +108,7 @@ public class IceAttribute : ScriptableObject
         name = attribute.name;
         primSprite = attribute.primSprite;
         secSprites = attribute.secSprites;
+        color = attribute.color;
 
         scale = attribute.scale;
         mass = attribute.mass;
@@ -140,7 +142,12 @@ public class IceAttribute : ScriptableObject
         isMelange = false;
 
         //Visuell:
-        primSprite = attribute.primSprite.dominance > primSprite.dominance ? attribute.primSprite : primSprite;
+        if(attribute.primSprite.dominance > primSprite.dominance)
+        {
+            primSprite = attribute.primSprite;
+            color = attribute.color;
+        }
+        //primSprite = attribute.primSprite.dominance > primSprite.dominance ? attribute.primSprite : primSprite;
         int i;
         foreach(var spriteData in attribute.secSprites)
         {

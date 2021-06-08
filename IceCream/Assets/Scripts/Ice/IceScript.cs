@@ -23,6 +23,7 @@ public class IceScript : MonoBehaviour, ICone
 
     private SpriteRenderer sprite;
     private Material mat;
+    public GameObject DestroyEffect;
 
     public IceAttribute attribute;
     IceAttribute _attribute;
@@ -50,6 +51,7 @@ public class IceScript : MonoBehaviour, ICone
     private void OnDestroy()
     {
         isGettingDestroyed = true;
+
         //if(cone != null) cone.blockCone();
         ResetTouch -= ResetTouchingCone;
     }
@@ -254,6 +256,11 @@ public class IceScript : MonoBehaviour, ICone
             StartCoroutine(UpdateLife());
             yield break;
         }
+
+        //Instantiiere Effekt:
+        GameObject obj = Instantiate(DestroyEffect, transform.position, Quaternion.identity);
+        ParticleSystem.MainModule main = obj.GetComponent<ParticleSystem>().main;
+        main.startColor = _attribute.color;
 
         Destroy(gameObject);
         yield break;

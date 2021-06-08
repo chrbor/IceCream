@@ -38,10 +38,11 @@ public class ParasolScript : MonoBehaviour
                 OpenParasol();
             return;
         }
-        if(_layer != 8)//Falls nicht vom Eis getroffen, dann mache den Schirm wieder zu
+        if (_layer != 8)//Falls nicht vom Eis getroffen, dann mache den Schirm wieder zu
             CloseParasol();
-        //else
-            anim.SetTrigger("squeesh");
+        else if (other.GetComponent<IceScript>().id > 0) return;
+
+         anim.SetTrigger("squeesh");
 
         Vector2 diff = transform.position - Camera.main.transform.position;
         if (Mathf.Abs(diff.x) < camWindow.x && Mathf.Abs(diff.y) < camWindow.y)

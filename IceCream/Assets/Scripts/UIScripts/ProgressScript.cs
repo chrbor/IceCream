@@ -13,7 +13,8 @@ public class ProgressScript : MonoBehaviour
     public static float goal_Bronze, goal_Silver, goal_Gold;
 
     private float x_max;
-    private Slider slider;
+    private RectTransform slider;
+    private Rect rect_slider;
     private RectTransform bronzeLimit, silverLimit;
 
     private Image Troph_Bronze, Troph_Silver, Troph_Gold;
@@ -41,13 +42,15 @@ public class ProgressScript : MonoBehaviour
         Troph_Silver = transform.GetChild(0).GetChild(1).GetComponent<Image>();
         Troph_Gold   = transform.GetChild(0).GetChild(2).GetComponent<Image>();
 
-        slider = transform.GetChild(1).GetComponent<Slider>();
-        bronzeLimit = slider.transform.GetChild(1).GetChild(1).GetComponent<RectTransform>();
-        silverLimit = slider.transform.GetChild(1).GetChild(2).GetComponent<RectTransform>();
-        x_max = silverLimit.anchoredPosition.x;
+        slider = transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<RectTransform>();
+        bronzeLimit = transform.GetChild(1).GetChild(1).GetComponent<RectTransform>();
+        silverLimit = transform.GetChild(1).GetChild(2).GetComponent<RectTransform>();
+        x_max = slider.rect.width;//silverLimit.anchoredPosition.x;
+        Debug.Log(x_max);
 
         //Baue auf:
-        slider.value = 0;
+        slider.sizeDelta *= Vector2.up;
+        slider.anchoredPosition = Vector2.zero;
         bronzeLimit.anchoredPosition = Vector2.right * x_max * goal_Bronze / goal_Gold;
         silverLimit.anchoredPosition = Vector2.right * x_max * goal_Silver / goal_Gold;
 
@@ -63,7 +66,8 @@ public class ProgressScript : MonoBehaviour
         if(progressPoints > goal_Gold) { progressPoints += attribute.scale; return; }
 
         progressPoints += attribute.scale;
-        slider.value = progressPoints > goal_Gold ? 1 : progressPoints / goal_Gold;
+        slider.sizeDelta = new Vector2(x_max * (progressPoints > goal_Gold ? 1 : progressPoints / goal_Gold), slider.sizeDelta.y);
+        slider.anchoredPosition = new Vector2(slider.sizeDelta.x/2, 0);
         if (!bronzeWin && progressPoints >= goal_Bronze) { bronzeWin = true; StartCoroutine(ShowTrophy(Troph_Bronze)); }
         if (!silverWin && progressPoints >= goal_Silver) { silverWin = true; StartCoroutine(ShowTrophy(Troph_Silver)); }
         if (!goldWin && progressPoints >= goal_Gold) { goldWin = true; StartCoroutine(ShowTrophy(Troph_Gold)); }

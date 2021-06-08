@@ -33,7 +33,7 @@ public class GluttonScript : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CapsuleCollider2D>();
-        anim = GetComponent<Animator>();
+        anim = transform.GetChild(0).GetComponent<Animator>();
         aSrc = GetComponent<AudioSource>();
 
         x_center = transform.position.x + offset;
@@ -46,11 +46,19 @@ public class GluttonScript : MonoBehaviour
         transform.GetChild(2).GetComponent<ColliderScript>().On_C_Enter -= HeadTriggered;
     }
 
+    int groundMask = (1 << 10) | (1 << 11) | (1 << 21);
+    private void Update()
+    {
+        anim.SetBool("inAir", Physics2D.Raycast(transform.position, Vector2.down, 3.5f, groundMask).collider == null);
+    }
+
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer != 8 || collision.gameObject.GetComponent<IceScript>().id > 0) return;
         StartCoroutine(PlayHit(collision.gameObject));
     }
+
 
     private void HeadTriggered(Collider2D other)
     {
@@ -66,6 +74,7 @@ public class GluttonScript : MonoBehaviour
         StartCoroutine(Attack(other.gameObject));
     }
 
+    bool changeDir;
     IEnumerator MoveAround()
     {
         while (transform.position.y > -9999)
@@ -73,7 +82,12 @@ public class GluttonScript : MonoBehaviour
             if (pauseGame || pauseMovement) yield return new WaitWhile(() => pauseGame || pauseMovement);
 
             if ((transform.localScale.x > 0 && (transform.position.x > x_center + range)) || (transform.localScale.x < 0 && (transform.position.x < x_center - range)) || Mathf.Sign(transform.position.x - prev_x) != Mathf.Sign(transform.localScale.x))
+            {
                 transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, 1);
+                if (changeDir) x_center = transform.position.x;
+                changeDir = true;
+            }
+            else changeDir = false;
 
             prev_x = transform.position.x;
             transform.position += Vector3.right * Mathf.Sign(transform.localScale.x) * velocity;
@@ -86,12 +100,14 @@ public class GluttonScript : MonoBehaviour
     IEnumerator Attack(GameObject other)
     {
         pauseMovement = true;
-        yield return new WaitForSeconds(.5f);
+        anim.Play("notice");
+        yield return new WaitForSeconds(1f);
         if (invincible) { pauseMovement = false; yield break; }
         invincible = true;
+        anim.Play("throw");
 
         //Berechne Startgeschw. 
-        Vector2 diff = other.transform.position - transform.position + Vector3.up;
+        Vector2 diff = other.transform.position - transform.position + Vector3.up * 2;
         if (diff.y == 0) yield break;
         float doubleDist_y = Mathf.Abs(diff.y * 2);
         float _t = Mathf.Sqrt(doubleDist_y/-Physics2D.gravity.y);
@@ -102,7 +118,7 @@ public class GluttonScript : MonoBehaviour
         //Warte, bis der Char wieder still steht:
         while (rb.velocity.sqrMagnitude > .125f)
         {
-            rb.rotation = Mathf.Atan2(rb.velocity.y, rb.velocity.x) * Mathf.Rad2Deg + 90;
+            rb.rotation = Mathf.Atan2(rb.velocity.y, rb.velocity.x) * Mathf.Rad2Deg - 90;
             yield return new WaitForEndOfFrame();
         }
 
@@ -116,7 +132,9 @@ public class GluttonScript : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         rb.simulated = true;
-        col.size = new Vector2(1.5f, 4);
+        anim.Play("move");
+
+        col.size = new Vector2(1.25f, 2.75f);
         transform.rotation = Quaternion.identity;
         x_center = transform.position.x;
         pauseMovement = false;
@@ -127,7 +145,8 @@ public class GluttonScript : MonoBehaviour
     {
         pauseMovement = true;
         invincible = true;
-        yield return new WaitForSeconds(3f);
+        anim.Play("hit");
+        yield return new WaitForSeconds(6.25f);
         invincible = false;
         pauseMovement = false;
 
@@ -137,7 +156,8 @@ public class GluttonScript : MonoBehaviour
     {
         pauseMovement = true;
         invincible = true;
-        yield return new WaitForSeconds(5f);
+        anim.Play("iced");
+        yield return new WaitForSeconds(6.25f);
         invincible = false;
 
         pauseMovement = false;
