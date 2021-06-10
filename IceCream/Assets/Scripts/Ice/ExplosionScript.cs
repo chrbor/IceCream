@@ -44,6 +44,8 @@ public class ExplosionScript : MonoBehaviour
         Vector2 diff = other.transform.position - transform.position;
         float distFactor = transform.localScale.x / (2 + diff.sqrMagnitude);
 
+        if(other.GetComponent<IHitable>() != null) { other.GetComponent<IHitable>().StartPlayHit(other.gameObject); return; }
+
         if (other.gameObject.layer == 8)
         {
             IceScript iceScript = other.GetComponent<IceScript>();

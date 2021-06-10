@@ -268,8 +268,8 @@ public class IceScript : MonoBehaviour, ICone
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isGettingDestroyed) return;
         int _layer = other.gameObject.layer;
+        if (isGettingDestroyed || _layer == 19/*iceOnly*/) return;
 
         if(id > 0)//Eis ist auf der Waffel
         {

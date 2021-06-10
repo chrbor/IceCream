@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static GameManager;
 
-public class BirdScript : MonoBehaviour
+public class BirdScript : MonoBehaviour, IHitable
 {
     [Header("Flugvektor:")]
     public float range = 10;
@@ -61,6 +61,7 @@ public class BirdScript : MonoBehaviour
         StartCoroutine(PlayHit(other.gameObject));        
     }
 
+    public void StartPlayHit(GameObject other) => StartCoroutine(PlayHit(other));
     IEnumerator PlayHit(GameObject other)
     {
         if(other.layer == 8 && other.GetComponent<IceScript>().id > 0)

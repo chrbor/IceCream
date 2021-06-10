@@ -32,7 +32,7 @@ public class ClockScript : MonoBehaviour
     private float width;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         clock = this;
         time = 0;

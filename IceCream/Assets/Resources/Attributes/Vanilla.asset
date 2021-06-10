@@ -28,7 +28,7 @@ MonoBehaviour:
   secSprites:
   - sprite: {fileID: 21300000, guid: a351e6e990fdee14ca83bc72771d635f, type: 3}
     dominance: 0
-  color: {r: 0.9622642, g: 0.9514168, b: 0.32226774, a: 1}
+  color: {r: 0.8962264, g: 0.89254355, b: 0.5960751, a: 1}
   scale: 1
   mass: 1
   shootPower: 12

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static GameManager;
+using static ClockScript;
 
 public class GelateriaScript : MonoBehaviour
 {
@@ -12,10 +13,41 @@ public class GelateriaScript : MonoBehaviour
     bool loadingScene;
     public string sceneName;
 
+    private Animator anim_vendor, anim_wagen;
+    public float openTime, closeTime;
+    public bool isOpen;
+
     private void Start()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.sceneUnloaded += OnSceneUnloaded;
+
+        anim_wagen = transform.GetChild(0).GetChild(0).GetComponent<Animator>();
+        anim_vendor = transform.GetChild(1).GetChild(0).GetComponent<Animator>();
+
+        StartCoroutine(WaitForOpenClose());
+    }
+
+    IEnumerator WaitForOpenClose()
+    {
+        Set_isOpen(isOpen || openTime < 0 || openTime > clock.timeLeft);
+
+        if (!isOpen)
+        {
+            yield return new WaitUntil(() => clock.timeLeft < openTime);
+            Set_isOpen(true);
+        }
+
+        yield return new WaitUntil(() => clock.timeLeft < closeTime);
+        Set_isOpen(false);
+    } 
+
+    void Set_isOpen(bool _isOpen)
+    {
+        isOpen = _isOpen;
+        GetComponent<Collider2D>().enabled = isOpen;
+        anim_vendor.SetBool("open", isOpen);
+        anim_wagen.SetBool("open", isOpen);
     }
 
     private void OnDestroy()
@@ -24,8 +56,12 @@ public class GelateriaScript : MonoBehaviour
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
     }
 
+
+
     private void OnTriggerEnter2D(Collider2D other)
     {
+        anim_vendor.SetTrigger("wink");
+
         if(other.gameObject.layer == 9) { hasPlayer = true; return; }
         if (!(hasPlayer && other.GetComponent<TouchSensor>().tipped)) return;
 

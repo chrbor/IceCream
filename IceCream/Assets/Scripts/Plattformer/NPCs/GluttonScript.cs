@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static GameManager;
 
-public class GluttonScript : MonoBehaviour
+public class GluttonScript : MonoBehaviour, IHitable
 {
     [Header("LaufVektor:")]
     public float range = 10;
@@ -22,14 +22,15 @@ public class GluttonScript : MonoBehaviour
     protected Rigidbody2D rb;
     protected CapsuleCollider2D col;
 
-    private int mask = (1 << 10) | (1 << 11) | (1 << 21);
     private float prev_x;
+
+    private Transform headTransform;
 
     protected virtual void Start()
     {
         transform.GetChild(1).GetComponent<TriggerScript>().On_T_Enter += ViewTriggered;
         transform.GetChild(2).GetComponent<ColliderScript>().On_C_Enter += HeadTriggered;
-
+        headTransform = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(0);
 
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<CapsuleCollider2D>();
@@ -68,7 +69,7 @@ public class GluttonScript : MonoBehaviour
     }
     private void ViewTriggered(Collider2D other)
     {
-        if (other.gameObject.layer != 8 || pauseMovement || invincible || Physics2D.Raycast(transform.position, Vector2.down, 2.5f, mask).collider == null ) return;
+        if (other.gameObject.layer != 8 || pauseMovement || invincible || Physics2D.Raycast(transform.position, Vector2.down, 2.5f, groundMask).collider == null ) return;
         if (other.GetComponent<IceScript>().id < 0) return;
 
         StartCoroutine(Attack(other.gameObject));
@@ -141,6 +142,8 @@ public class GluttonScript : MonoBehaviour
         invincible = false;
         yield break;
     }
+
+    public void StartPlayHit(GameObject other) => StartCoroutine(GetHeadHit(other));
     IEnumerator GetHeadHit(GameObject other)
     {
         pauseMovement = true;
@@ -156,8 +159,9 @@ public class GluttonScript : MonoBehaviour
     {
         pauseMovement = true;
         invincible = true;
+        headTransform.GetChild(0).GetComponent<SpriteRenderer>().color = other.GetComponent<IceScript>().Get_attribute().color;
         anim.Play("iced");
-        yield return new WaitForSeconds(6.25f);
+        yield return new WaitForSeconds(12);
         invincible = false;
 
         pauseMovement = false;

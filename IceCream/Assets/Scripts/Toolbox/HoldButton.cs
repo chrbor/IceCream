@@ -38,7 +38,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     }
 
     public static void UnlockAll() => unlockButtons.Invoke();
-    void UnLockButton() { locked = false; selected = false; }
+    void UnLockButton() { locked = false; selected = false; image.sprite = normal; }
     void LockButton(bool locking)
     {
         locked = locking;

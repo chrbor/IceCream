@@ -43,8 +43,9 @@ public class IceStandScript : MonoBehaviour
         Camera.main.transform.position = new Vector3(4 * Camera.main.orthographicSize * Camera.main.aspect, 1<<15, -10);
 
         //Ermittle alle benötigten Referenzen:
-        iceDisplay = transform.GetChild(0);
-        startField = transform.GetChild(1).GetChild(1).GetChild(0).GetChild(0);
+        iceDisplay = transform.GetChild(1);
+        //Debug.Log(transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0).name);
+        startField = transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0);
         infoField = startField.parent.GetChild(1);
 
         header = infoField.GetChild(0).GetChild(0).GetComponent<Text>();
