@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour
         mainListener = Camera.main.GetComponent<AudioListener>();
         mainCamera = Camera.main.gameObject;
         globalLight = GameObject.FindGameObjectWithTag("light");
+
+        PauseTheGame(false);
     }
 
     public static void PauseTheGame(bool pausing)

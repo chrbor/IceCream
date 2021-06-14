@@ -32,6 +32,7 @@ public class GoalScript : MonoBehaviour
     private IEnumerator JumpToPoint(GameObject jumper, GameObject ice)
     {
         goalerList.Remove(jumper);
+        jumper.GetComponent<GoalerScript>().block = true;
 
         Rigidbody2D rb_ice = ice.GetComponent<Rigidbody2D>();
         Vector3 ice_vel = Vector3.zero;
@@ -52,14 +53,12 @@ public class GoalScript : MonoBehaviour
         ice_vel *= Time.fixedDeltaTime;
 
 
-
-
         Vector2 startPos = jumper.transform.position;
         Vector2 diff = endPoint - (Vector2)jumper.transform.position + Vector2.down;
 
         Animator anim = jumper.transform.GetChild(0).GetComponent<Animator>();
         anim.Play("Jump", 0);
-        jumper.transform.localScale = Mathf.Abs(jumper.transform.localScale.x) * Vector3.one * Mathf.Sign(diff.x);
+        jumper.transform.localScale = Mathf.Abs(jumper.transform.localScale.x) * new Vector3(Mathf.Sign(diff.x), 1, 1);
 
         //Fliege zum Punkt:
         for(float count = 0; count < 1; count += timeStep)
@@ -94,6 +93,7 @@ public class GoalScript : MonoBehaviour
         jumper.transform.position = startPos;
         goalerList.Add(jumper);
         anim.SetBool("moving", false);
+        jumper.GetComponent<GoalerScript>().block = false;
         yield break;
     }
 }

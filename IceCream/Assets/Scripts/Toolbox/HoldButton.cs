@@ -11,6 +11,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public static event UnityAction<bool> lockButtons;
     public static event UnityAction unlockButtons;
+    public static bool buttonPressed;
 
     protected Sprite normal;
     public Sprite selectedSprite;
@@ -37,7 +38,8 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         unlockButtons -= UnLockButton;
     }
 
-    public static void UnlockAll() => unlockButtons.Invoke();
+    public static void LockAll() { if (lockButtons != null) lockButtons.Invoke(true); }
+    public static void UnlockAll() { unlockButtons.Invoke(); buttonPressed = false; }
     void UnLockButton() { locked = false; selected = false; image.sprite = normal; }
     void LockButton(bool locking)
     {
@@ -54,6 +56,8 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        buttonPressed = true;
+
         //switch(button_type)
         if (!(pointerDown || locked))
         {
@@ -72,6 +76,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         if (!locked)
         {
             //pointerDown = false;
+            buttonPressed = false;
 
             //Do stuff on release:
             image.sprite = normal;

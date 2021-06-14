@@ -8,7 +8,7 @@ public class CatalogScript : MonoBehaviour
     CanvasGroup infoField, buttonField, placeHolder;
     Text title, anecdote, infoText;
     Image iceImage;
-    Text life, range, velocity, jumpForce, agility, stability, upForce, fallSpeed;
+    Text life, range, velocity, jumpForce, agility, stability, upForce, scale;
 
     Animator anim;
 
@@ -41,7 +41,7 @@ public class CatalogScript : MonoBehaviour
         agility = Tbutton.GetChild(9).GetComponent<Text>();
         stability = Tbutton.GetChild(11).GetComponent<Text>();
         upForce = Tbutton.GetChild(13).GetComponent<Text>();
-        fallSpeed = Tbutton.GetChild(15).GetComponent<Text>();
+        scale = Tbutton.GetChild(15).GetComponent<Text>();
 
         anim = GetComponent<Animator>();
     }
@@ -85,7 +85,7 @@ public class CatalogScript : MonoBehaviour
         agility.text = Mathf.RoundToInt((attribute.agility - 1) * 100).ToString() + "%";
         stability.text = Mathf.RoundToInt((attribute.instability - 1) * -100).ToString() + "%";
         upForce.text = Mathf.RoundToInt((attribute.upForce - 1) * 100).ToString() + "%";
-        fallSpeed.text = Mathf.RoundToInt((attribute.dropSpeed - 1) * 100).ToString() + "%";
+        scale.text = Mathf.RoundToInt(attribute.scale * 10).ToString();
 
         if (!infoField.gameObject.activeSelf) StartCoroutine(ShowInfoField());
     }

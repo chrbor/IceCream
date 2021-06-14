@@ -49,6 +49,15 @@ public class ClockScript : MonoBehaviour
         StartCoroutine(RunTimer());
     }
 
+    public void SetStartEnd(float startpoint, float endpoint)
+    {
+        transform.GetChild(2).GetComponent<RectTransform>().anchoredPosition = new Vector2(width * (1 - startpoint / 420f), 37.5f);
+        transform.GetChild(3).GetComponent<RectTransform>().anchoredPosition = new Vector2(width * (1 - endpoint / 420f), 37.5f);
+
+        transform.GetChild(2).gameObject.SetActive(true);
+        transform.GetChild(3).gameObject.SetActive(true);
+    }
+
     private bool fastForwarding;
     public void FastForward(bool isOn)
     {
@@ -66,12 +75,14 @@ public class ClockScript : MonoBehaviour
             postprocess.colorAdj.colorFilter.value = hdrFactor.Evaluate(percent) * timeColor.Evaluate(percent);
             timePointer.anchoredPosition = Vector2.right * width * percent;
             sun.localScale = Vector3.one * Camera.main.orthographicSize * .25f;
-            sun.position = Camera.main.transform.position + new Vector3(centered * 3f * Camera.main.orthographicSize, -Camera.main.orthographicSize * (.7f + centered * centered), 10);
+            sun.position = Camera.main.transform.position + new Vector3(centered * 3f * Camera.main.orthographicSize, -Camera.main.orthographicSize * (.5f + centered * centered), 10);
 
             //yield return new WaitForSeconds(1);
             yield return new WaitForFixedUpdate();
             timeLeft -= fastForwarding ? 1 : Time.fixedDeltaTime;
             time += Time.fixedDeltaTime;
+
+            if (timeLeft <= 0) transform.parent.parent.GetComponent<MenuScript>().ChangeWinLoseMenu(true);
         }
 
         yield break;

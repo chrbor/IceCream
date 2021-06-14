@@ -19,6 +19,7 @@ public class IceStandScript : MonoBehaviour
 
     public GameObject IceImagePrefab;
     public GameObject IcePrefab;
+    public GameObject ConePrefab;
 
     [Header("Prefabs für die Minispiele:")]
     public GameObject miniGamePrefab;
@@ -26,6 +27,7 @@ public class IceStandScript : MonoBehaviour
     public GameObject MiniIcePrefab;
     public GameObject MiniConePrefab;
 
+    [HideInInspector]
     public Transform iceDisplay;
     Transform startField, infoField;
     Text header, anecdote, body, dataText;
@@ -40,11 +42,10 @@ public class IceStandScript : MonoBehaviour
         plannedIce = new List<IceAttribute>();
         addedIce = new List<IceAttribute>();
         Canvas.ForceUpdateCanvases();
-        Camera.main.transform.position = new Vector3(4 * Camera.main.orthographicSize * Camera.main.aspect, 1<<15, -10);
+        Camera.main.transform.position = new Vector3(-4 * Camera.main.orthographicSize * Camera.main.aspect, 1<<15, -10);
 
         //Ermittle alle benötigten Referenzen:
         iceDisplay = transform.GetChild(1);
-        //Debug.Log(transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0).name);
         startField = transform.GetChild(0).GetChild(1).GetChild(0).GetChild(0);
         infoField = startField.parent.GetChild(1);
 
@@ -53,6 +54,14 @@ public class IceStandScript : MonoBehaviour
         body = infoField.GetChild(0).GetChild(2).GetComponent<Text>();
         iceImage = infoField.GetChild(1).GetComponent<Image>();
         dataText = infoField.GetChild(2).GetComponent<Text>();
+
+        //Erstelle Cone in der Plattformer-Scene:
+        if(SceneManager.sceneCount > 1 && cone == null)
+        {
+            GameObject coneObj = Instantiate(ConePrefab, player.transform.position, Quaternion.identity);
+            coneObj.GetComponent<ParentObjScript>().target = player.transform.GetChild(0).GetChild(0).GetChild(2).GetChild(0).GetChild(0).GetChild(0).gameObject;
+            SceneManager.MoveGameObjectToScene(coneObj, mainScene);
+        }
 
         //Erstelle bestehendes Eis:
         UpdateIceDisplay();
@@ -183,7 +192,7 @@ public class IceStandScript : MonoBehaviour
         anecdote.text = attribute.anecdote;
         body.text = attribute.description;
         iceImage.sprite = Resources.Load<Sprite>("Attributes/Sprites/" + attribute.name);
-        dataText.text = attribute.life.ToString() + "\n" + attribute.shootPower + "\n" + Mathf.RoundToInt(attribute.instability * 100 - 100);
+        dataText.text = attribute.life.ToString() + "\n" + attribute.shootPower + "\n" + Mathf.RoundToInt(attribute.scale * 10);
 
         StartCoroutine(ShowingInfo());
     }
@@ -223,12 +232,14 @@ public class IceStandScript : MonoBehaviour
         if (hide) HoldButton.UnlockAll();
     }
 
+    public static bool stopTimer;
     IEnumerator UpdateTimer()
     {
         if (clock == null) yield break;
 
         while(clock.timeLeft > 0)
         {
+            if (stopTimer) yield return new WaitWhile(() => stopTimer);
             yield return new WaitForFixedUpdate();
             clock.timeLeft -= Time.fixedDeltaTime;
             clock.time += Time.fixedDeltaTime;

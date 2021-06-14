@@ -105,7 +105,7 @@ public class MiniGameScript : MonoBehaviour
     {
         //Gleite zum Spiel über:
         RectTransform Tgelateria = iceStand.transform.parent.GetComponent<RectTransform>();
-        Vector2 endPixelPoint = 2 * Camera.main.pixelWidth * Vector2.right;
+        Vector2 endPixelPoint = -2 * Camera.main.pixelWidth * Vector2.right;
         AnimationCurve animCurve = moveToGame ? AnimationCurve.EaseInOut(0, 0, 1, 1) : AnimationCurve.EaseInOut(0,1,1,0);
 
         float timeStep = Time.fixedDeltaTime / transitionTime;
@@ -115,7 +115,7 @@ public class MiniGameScript : MonoBehaviour
             Tgelateria.anchoredPosition = endPixelPoint * animCurve.Evaluate(count);
             yield return new WaitForFixedUpdate();
         }
-        Camera.main.transform.position = new Vector3(0, 1<<15, -10);
+        if(moveToGame) Camera.main.transform.position = new Vector3(0, 1<<15, -10);
 
         yield break;
     }

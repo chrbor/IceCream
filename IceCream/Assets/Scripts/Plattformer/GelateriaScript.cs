@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static GameManager;
 using static ClockScript;
+using static HoldButton;
 
 public class GelateriaScript : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class GelateriaScript : MonoBehaviour
     private Animator anim_vendor, anim_wagen;
     public float openTime, closeTime;
     public bool isOpen;
+    public bool createConeRightSide;
 
     private void Start()
     {
@@ -25,6 +27,7 @@ public class GelateriaScript : MonoBehaviour
         anim_wagen = transform.GetChild(0).GetChild(0).GetComponent<Animator>();
         anim_vendor = transform.GetChild(1).GetChild(0).GetComponent<Animator>();
 
+        clock.SetStartEnd(openTime, closeTime);
         StartCoroutine(WaitForOpenClose());
     }
 
@@ -60,10 +63,8 @@ public class GelateriaScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        anim_vendor.SetTrigger("wink");
-
-        if(other.gameObject.layer == 9) { hasPlayer = true; return; }
-        if (!(hasPlayer && other.GetComponent<TouchSensor>().tipped)) return;
+        if(other.gameObject.layer == 9) { hasPlayer = true; anim_vendor.SetTrigger("wink"); return; }
+        if (!(hasPlayer && other.GetComponent<TouchSensor>().tipped && isOpen) || buttonPressed) return;
 
         //Was passiert, wenn angetippt wird:
         loadingScene = true;

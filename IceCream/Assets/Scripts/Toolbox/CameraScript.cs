@@ -42,7 +42,7 @@ public class CameraScript : MonoBehaviour
     {
         if (shaking)
         {
-            shakeCount += 10;
+            if(shakeCount < 50) shakeCount += 10;
             shakeImpact = (shakeImpact + Camera.main.orthographicSize / reduction) / 2;
             return;
         }

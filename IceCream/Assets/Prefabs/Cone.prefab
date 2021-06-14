@@ -68,7 +68,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1740308227
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 6c684806b92a2e343abcc99e83425b32, type: 3}
   m_Color: {r: 0.9811321, g: 0.7750508, b: 0.64328945, a: 1}
@@ -133,12 +133,11 @@ MonoBehaviour:
   run: 0
   blockTime: 0
   helpForce: 10
-  coneGravity: {x: 0.15, y: 0.05}
+  coneGravity: {x: 0.25, y: 0.1}
   tilt_move: {x: 0.2, y: 0.2}
+  dropSpeed: 0.1
   windForce: {x: 0, y: 0}
-  fillTime: 1
-  fillTime_real: 0
-  camSize: 5
+  camSize: 8
 --- !u!114 &2194637458701904115
 MonoBehaviour:
   m_ObjectHideFlags: 0

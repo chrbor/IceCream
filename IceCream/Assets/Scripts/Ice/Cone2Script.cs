@@ -5,6 +5,7 @@ using static Helper;
 using static IceManager;
 using static CameraScript;
 using static GameManager;
+using static GelateriaScript;
 
 public class Cone2Script : MonoBehaviour, ICone
 {
@@ -161,8 +162,8 @@ public class Cone2Script : MonoBehaviour, ICone
 
         rb.velocity = rb.position - prevPosition;
         //Rotiere zur letzten Eiskugel:
-        diff_rot_cone = .01f * ((diff_info.Count > 2 ? diff_info[diff_info.Count - 1].rotation : 0) - rb.rotation);
-        rb.rotation += diff_rot_cone;
+        //diff_rot_cone = .01f * ((diff_info.Count > 2 ? diff_info[diff_info.Count - 1].rotation : 0) - rb.rotation);
+        //rb.rotation += diff_rot_cone;
 
         UpdateIce();
 
@@ -176,7 +177,7 @@ public class Cone2Script : MonoBehaviour, ICone
     IEnumerator StartCone()
     {
         yield return new WaitForFixedUpdate();
-        player.transform.GetChild(0).GetComponent<ProcMove>().SetConeActive(1);
+        player.transform.GetChild(0).GetComponent<ProcMove>().SetConeActive(gelateria != null && gelateria.createConeRightSide ? 1 : -1);
 
         yield return new WaitForSeconds(.5f);
         run = true;
@@ -253,18 +254,21 @@ public class Cone2Script : MonoBehaviour, ICone
                 rot = diff_info[i].rotation * dist_Factor * (Mathf.Sign(diff_info[i].rotation) == Mathf.Sign(rb.velocity.x) || rb.velocity.x == 0 ? coneGravity.x : coneGravity.y) //Gravity
                 + (10 + Mathf.Sign(rb.velocity.x) == Mathf.Sign(diff_info[i].rotation) ? 0 : helpForce) * (rot_move.x + rot_move.y)//Movement
                 + Mathf.Sin((diff_info[i].rotation - 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)) * windForce.magnitude;
-                //Debug.Log("coneRot: " + (diff_info[i].rotation + 90) + ", windRot: " + Mathf.Atan2(windForce.y, windForce.x) * Mathf.Rad2Deg + ", diff: " + ((diff_info[i].rotation + 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)) * Mathf.Rad2Deg);
-                //Debug.Log(Mathf.Sin((diff_info[i].rotation + 90) * Mathf.Deg2Rad - Mathf.Atan2(windForce.y, windForce.x)));
+
+                //Lottas-Cap':
+                //rot = (Mathf.Abs(diff_info[i].rotation) > 30 && (Mathf.Sign(rot) == Mathf.Sign(diff_info[i].rotation)) ? 0 : rot);
             }
             else
+            {
+                //rot = diff_info[iceTower.Count - 1].rotation * weight - diff_info[i].rotation;
                 rot = rot_cntct * weight * 1 * (1 - weight);
-
-            //Stelle sicher, dass der Kontakt zur Vorherigen Kugel aufrecht erhalten wird
-            if (i != iceTower.Count-1 && (Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > (iceTower[i + 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .325f) rot = rot_prev;
+                //Stelle sicher, dass der Kontakt zur Vorherigen Kugel aufrecht erhalten wird
+                if ((Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > (iceTower[i + 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .325f) rot = rot_prev;
+            }
 
             //Rotiere:
             posInCone = iceTower[i].Get_posInCone();
-            Vector4 rot_Matrix = GetRotationMatrix(weight * rot * Mathf.Deg2Rad);
+            Vector4 rot_Matrix = GetRotationMatrix(weight * rot * Mathf.Deg2Rad);//Bei Antenne: weight raus!
             posInCone = new Vector2(rot_Matrix.x * posInCone.x + rot_Matrix.y * posInCone.y,
                                     rot_Matrix.z * posInCone.x + rot_Matrix.w * posInCone.y);
             rot_prev = rot;
@@ -272,11 +276,10 @@ public class Cone2Script : MonoBehaviour, ICone
             //Aktualisiere y_position auf der Waffel:
             Vector2 diffToPrev = iceTower[i - 1].Get_transform().position - iceTower[i].Get_transform().position;
             float scaleFactor = (iceTower[i - 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .35f;//formerly /2 *.65f
-            if(diffToPrev.sqrMagnitude > scaleFactor * scaleFactor)
+            if(diffToPrev.sqrMagnitude > scaleFactor * scaleFactor && rot != 0)
             {
                 posInCone += diffToPrev.normalized * dropSpeed;
             }
-
 
             iceTower[i].Set_posInCone(posInCone);
         }

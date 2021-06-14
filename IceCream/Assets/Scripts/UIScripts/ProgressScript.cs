@@ -36,6 +36,7 @@ public class ProgressScript : MonoBehaviour
         goal_Bronze = 3;
         goal_Silver = 4;
         goal_Gold = 5;
+        progressPoints = 0;
 
         //Hole alle wichtigen elemente:
         Troph_Bronze = transform.GetChild(0).GetChild(0).GetComponent<Image>();
@@ -46,7 +47,6 @@ public class ProgressScript : MonoBehaviour
         bronzeLimit = transform.GetChild(1).GetChild(1).GetComponent<RectTransform>();
         silverLimit = transform.GetChild(1).GetChild(2).GetComponent<RectTransform>();
         x_max = slider.rect.width;//silverLimit.anchoredPosition.x;
-        Debug.Log(x_max);
 
         //Baue auf:
         slider.sizeDelta *= Vector2.up;
