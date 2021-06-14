@@ -27,6 +27,12 @@ public class GelateriaScript : MonoBehaviour
         anim_wagen = transform.GetChild(0).GetChild(0).GetComponent<Animator>();
         anim_vendor = transform.GetChild(1).GetChild(0).GetComponent<Animator>();
 
+        if(clock == null)
+        {
+            Set_isOpen(true);
+            return;
+        }
+
         clock.SetStartEnd(openTime, closeTime);
         StartCoroutine(WaitForOpenClose());
     }

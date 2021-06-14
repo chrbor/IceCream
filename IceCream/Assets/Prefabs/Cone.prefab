@@ -134,7 +134,7 @@ MonoBehaviour:
   blockTime: 0
   helpForce: 10
   coneGravity: {x: 0.25, y: 0.1}
-  tilt_move: {x: 0.2, y: 0.2}
+  tilt_move: {x: 0.4, y: 0.4}
   dropSpeed: 0.1
   windForce: {x: 0, y: 0}
   camSize: 8

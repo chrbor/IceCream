@@ -11,6 +11,8 @@ public class CreditScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        transform.GetChild(transform.childCount - 1).GetChild(0).GetChild(0).GetComponent<Animator>().Play("phIdle");
+
         StartCoroutine(RollCredits());
     }
 

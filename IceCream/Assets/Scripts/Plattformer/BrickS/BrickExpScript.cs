@@ -20,6 +20,6 @@ public class BrickExpScript : BrickScript
 
         GameObject explsn = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         explsn.transform.localScale = Vector3.one * size;
-        Destroy(gameObject);
+        Destroy(transform.parent.gameObject);
     }
 }

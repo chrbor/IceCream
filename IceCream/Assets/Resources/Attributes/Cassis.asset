@@ -17,7 +17,7 @@ MonoBehaviour:
   stickyCenter: {x: 0, y: 0}
   stickyCount: 0
   stickyRotation: 0
-  anecdote: Die BESTE Eissorte!!!  -Mikoto
+  anecdote: "Das \xE4ndert ALLES!!!"
   description: "Schmilzt schnell, ver\xE4ndert seinen Status aber erst dann, wenn
     der Boden ber\xFChrt wird.\nL\xE4sst sich gut mit anderen Eissorten kombinieren!"
   primSprite:

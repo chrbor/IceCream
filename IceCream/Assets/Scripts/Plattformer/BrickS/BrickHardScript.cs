@@ -15,7 +15,7 @@ public class BrickHardScript : BrickScript
 
     protected override void DoSpecial()
     {
-        if (--life <= 0) { Destroy(gameObject); return; }
+        if (--life <= 0) { Destroy(transform.parent.gameObject); return; }
         sprite.sprite = sprites[life - 1];
     }
 }

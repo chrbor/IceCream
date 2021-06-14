@@ -149,6 +149,7 @@ public class IceAttribute : ScriptableObject
         }
         //primSprite = attribute.primSprite.dominance > primSprite.dominance ? attribute.primSprite : primSprite;
         int i;
+        secSprites = new List<SpriteData>(secSprites);
         foreach(var spriteData in attribute.secSprites)
         {
             for (i = 0; i < secSprites.Count; i++) if (spriteData.dominance <= secSprites[i].dominance) break;//Ermittle die Stelle, an die die Textur eingefügt werden muss
@@ -162,6 +163,7 @@ public class IceAttribute : ScriptableObject
 
         shootPower = (shootPower + attribute.shootPower) / 2;
         explosionRange = (explosionRange + attribute.explosionRange) / 1.5f;
+        splitCount += attribute.splitCount;
         sticky |= attribute.sticky;
         reactOnImpact |= attribute.reactOnImpact;
         growing = (growing + attribute.growing) / 1.5f;

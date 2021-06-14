@@ -321,13 +321,14 @@ public class IceScript : MonoBehaviour, ICone
                         //Split:
                         if (_attribute.splitCount > 0)
                         {
-                            _attribute.life_current = _attribute.life;
 
                             IceScript splitIce = Instantiate(gameObject).GetComponent<IceScript>();
                             splitIce.Set_Attribute(_attribute);
                             splitIce.Get_attribute().ResetIce();
+                            splitIce.Get_attribute().life_current = _attribute.life_current;
                             rb.velocity = -prevVel;
 
+                            _attribute.life_current = _attribute.life;
                             _attribute.reactOnImpact = false;
                             _attribute.splitCount--;
                             _attribute.scale *= .75f;
@@ -553,7 +554,7 @@ public class IceScript : MonoBehaviour, ICone
     {
         RemoveFromCone();
         transform.parent = null;
-        rb.velocity = cone.rb.velocity + (rb.position - prev.Get_rb().position).normalized * _attribute.shootPower;
+        rb.velocity = cone.rb.velocity + (rb.position - /*prev.Get_rb().position).normalized*/cone.rb.position).normalized * _attribute.shootPower;
 
         gameObject.layer = 13;
         yield return new WaitForSeconds(.1f);

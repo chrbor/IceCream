@@ -20,9 +20,9 @@ public class MenuScript : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
-    public void StartTestLevel()
+    public void LoadSandbox()
     {
-        SceneManager.LoadScene("TestLevel");
+        SceneManager.LoadScene("L_Sandbox");
     }
     public void LoadCredits()
     {
@@ -49,6 +49,11 @@ public class MenuScript : MonoBehaviour
     public void ChangeWinLoseMenu(bool open)
     {
         StartCoroutine(ChangingMenu(open, transform.GetChild(transform.childCount - 1).GetComponent<CanvasGroup>()));
+    }
+
+    public void ChangeSign(bool open)
+    {
+        StartCoroutine(ChangingMenu(open, transform.GetChild(transform.childCount - 2).GetComponent<CanvasGroup>()));
     }
 
     IEnumerator ChangingMenu(bool openingMenu, CanvasGroup menuGroup)
