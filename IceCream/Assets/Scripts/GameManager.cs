@@ -15,8 +15,6 @@ public class GameManager : MonoBehaviour
     public static bool pauseGame;
     public static bool pauseMiniGame;
 
-    public static bool commentaryON;
-
     public static GameObject player;
     public static PlayerAttribute pAttribute;
 
@@ -29,8 +27,6 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        commentaryON = true;
-
         Screen.autorotateToLandscapeLeft = true;
         Screen.autorotateToLandscapeRight = true;
         Screen.autorotateToPortrait = false;
@@ -51,6 +47,9 @@ public class GameManager : MonoBehaviour
         pauseMove = pausing;
         Physics2D.autoSimulation = !pausing;
         if (clock != null) clock.running = !pausing;
+
+        staticCam = pausing;
+        pauseMove = pausing;
     }
 
     [System.Serializable]

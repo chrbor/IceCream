@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static CommentaryScript;
 
 public class CatalogScript : MonoBehaviour
 {
@@ -11,6 +12,10 @@ public class CatalogScript : MonoBehaviour
     Text life, range, velocity, jumpForce, agility, stability, upForce, scale;
 
     Animator anim;
+
+    [Header("Commentary:")]
+    public string comment;
+    public int commentID;
 
     bool initialized;
     private void Start()
@@ -100,6 +105,8 @@ public class CatalogScript : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         placeHolder.gameObject.SetActive(false);
+
+        commentary.PlayCommentary("Icecat", 10);
         yield break;
     }
 }

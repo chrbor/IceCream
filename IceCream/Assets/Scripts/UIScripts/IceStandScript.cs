@@ -89,7 +89,9 @@ public class IceStandScript : MonoBehaviour
     public void ExitMiniGame()
     {
         if (mainScene == null) return;
+        if (addedIce.Count > 0) GelateriaScript.gelateria.waitForIce = true;
         AddToTower(addedIce);
+
         Scene oldScene = SceneManager.GetActiveScene();
         SceneManager.SetActiveScene(mainScene);
         mainCamera.SetActive(true);

@@ -57,6 +57,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         buttonPressed = true;
+        PlayerScript.blockShoot = true;
 
         //switch(button_type)
         if (!(pointerDown || locked))
@@ -72,6 +73,7 @@ public class HoldButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     }
     public virtual void OnPointerUp(PointerEventData eventData)
     {
+        PlayerScript.blockShoot = false;
         pointerDown = false;
         if (!locked)
         {

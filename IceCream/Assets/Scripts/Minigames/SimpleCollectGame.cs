@@ -108,7 +108,7 @@ public class SimpleCollectGame : MiniGameScript
             if(Input.touchCount == 0)
             {
                 currentSpeed *= .9f;
-                cone_mini.transform.position += Vector3.right * currentSpeed;//Ausgleiten
+                cone_mini.transform.position += Vector3.left * currentSpeed;//Ausgleiten
                 yield return new WaitForFixedUpdate();
                 continue;
             }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static CommentaryScript;
 
 public class Tutorial_2 : TutorialScript
 {
@@ -16,7 +17,13 @@ public class Tutorial_2 : TutorialScript
             group.alpha = active ? count : 1 - count;
             yield return new WaitForFixedUpdate();
         }
-        if (!active) { HoldButton.UnlockAll(); Destroy(gameObject); yield break; }
+        if (!active)
+        {
+            commentary.PlayCommentary(comment, commentID);
+            HoldButton.UnlockAll();
+            Destroy(gameObject);
+            yield break;
+        }
 
 
         //Eingangstext ist Voreinstellung:
@@ -146,8 +153,11 @@ public class Tutorial_2 : TutorialScript
         text.text = "Die Reichweite gibt an, wie weit das Eis";
         yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
         yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
-
+#if (UNITY_ANDROID)
+        text.text = "von der Waffel weggeschossen werden kann (Touchscreen tippen)";
+#elif (UNITY_STANDALONE)
         text.text = "von der Waffel weggeschossen werden kann (LEERTASTE)";
+#endif
         yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
         yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
 

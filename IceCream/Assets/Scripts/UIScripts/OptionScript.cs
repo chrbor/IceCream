@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static GameManager;
+using static CommentaryScript;
 
 public class OptionScript : MonoBehaviour
 {
@@ -32,6 +32,6 @@ public class OptionScript : MonoBehaviour
         if (!opening) gameObject.SetActive(false);
     }
 
-    public void ChangeAudioComments(bool isOn) => commentaryON = isOn;
-    public void ChangeAudioComments(float volume) { Debug.Log(volume); CommentaryScript.SetCommentaryVolume(volume); }
+    public void ChangeAudioComments(bool isOn) => commentaryOff = !isOn;
+    public void ChangeAudioComments(float volume) { CommentaryScript.SetCommentaryVolume(volume); }
 }

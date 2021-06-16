@@ -5,10 +5,13 @@ using UnityEngine.SceneManagement;
 using static GameManager;
 using static ClockScript;
 using static HoldButton;
+using static CommentaryScript;
 
 public class GelateriaScript : MonoBehaviour
 {
     public static GelateriaScript gelateria;
+    [HideInInspector]
+    public bool waitForIce;
 
     bool hasPlayer;
     bool loadingScene;
@@ -18,6 +21,12 @@ public class GelateriaScript : MonoBehaviour
     public float openTime, closeTime;
     public bool isOpen;
     public bool createConeRightSide;
+
+    [Header("Commentary:")]
+    public string comment;
+    public int commentID;
+
+    private CommentaryScript realComment;
 
     private void Start()
     {
@@ -73,11 +82,13 @@ public class GelateriaScript : MonoBehaviour
         if (!(hasPlayer && other.GetComponent<TouchSensor>().tipped && isOpen) || buttonPressed) return;
 
         //Was passiert, wenn angetippt wird:
+        realComment = commentary;
         loadingScene = true;
         //globalLight.SetActive(false);
         mainCanvas.SetActive(false);
         mainListener.enabled = false;
         PauseTheGame(true);
+        Camera.main.gameObject.SetActive(false);
         SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
 
     }
@@ -102,6 +113,20 @@ public class GelateriaScript : MonoBehaviour
         mainCanvas.SetActive(true);
         mainListener.enabled = true;
         PauseTheGame(false);
-        
+        if (waitForIce)
+        {
+            waitForIce = false;
+            StartCoroutine(WaitingForIce());
+        }
+        commentary = realComment;
+        if(comment != "") commentary.PlayCommentary(comment, commentID);
+
+    }
+
+    IEnumerator WaitingForIce()
+    {
+        pauseMove = true;
+        yield return new WaitForSeconds(1);
+        pauseMove = false;
     }
 }

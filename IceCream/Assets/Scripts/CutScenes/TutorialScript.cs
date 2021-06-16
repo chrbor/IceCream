@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static GameManager;
+using static CommentaryScript;
 
 public class TutorialScript : MonoBehaviour
 {
@@ -16,6 +17,10 @@ public class TutorialScript : MonoBehaviour
     public Texture2D circleMask, rectMask, empty;
 
     protected float timeStep;
+
+    [Header("commentary:")]
+    public string comment;
+    public int commentID;
 
     // Start is called before the first frame update
     void Start()
@@ -39,14 +44,26 @@ public class TutorialScript : MonoBehaviour
     {
         group.alpha = active ? 0 : 1;
         yield return new WaitForSeconds(.1f);
-        if (active) PauseTheGame(true);
-
+        if (active)
+        {
+            PauseTheGame(true);
+#if (UNITY_ANDROID)
+            StartCoroutine(CameraScript.cScript.SetRotation(0, .5f));
+#endif
+        }
         for (float count = 0; count < 1; count += timeStep)
         {
             group.alpha = active ? count : 1 - count;
             yield return new WaitForFixedUpdate();
         }
-        if (!active) { PauseTheGame(false); Destroy(gameObject); yield break; }
+        if (!active)
+        {
+            commentary.PlayCommentary(comment, commentID);
+
+            PauseTheGame(false);
+            Destroy(gameObject);
+            yield break;
+        }
 
 
         //Eingangstext ist Voreinstellung:

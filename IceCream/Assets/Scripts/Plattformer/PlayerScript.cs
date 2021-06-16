@@ -23,7 +23,8 @@ public class PlayerScript : MonoBehaviour
     //[HideInInspector]
     public float camSize = 8;
 
-    bool prevTapp = false;
+    public static bool blockShoot = false;
+    private bool prevTapp;
 
     private int mask = 1 << 11;//Ground
     private ProcMove procMove;
@@ -45,10 +46,6 @@ public class PlayerScript : MonoBehaviour
         //Vel_Damping:
         rb.velocity *= Mathf.Abs(rb.velocity.x) > 0.1f ? new Vector2(.9f, 1) : Vector2.up;
 
-        //Feuer Eis:
-        if (Input.touchCount > 0 && !prevTapp) IceManager.CallFireIce();
-        prevTapp = Input.touchCount > 0;
-
         //Laufen:
         isMoving = false;
         if(Input.gyro.gravity.y > -0.2f) { if(!staticCam) Camera.main.transform.rotation = Quaternion.identity; return; }
@@ -56,11 +53,11 @@ public class PlayerScript : MonoBehaviour
         angle = Mathf.Atan(Input.gyro.gravity.x / -Input.gyro.gravity.y) * Mathf.Rad2Deg;
         if (Mathf.Abs(angle) > thresh_maxAngle) angle = Mathf.Sign(angle) * thresh_maxAngle;
 
-        float moveStrength = angle / 90;
+        float moveStrength = angle / (thresh_maxAngle + 10);
         if (!staticCam)
         {
-            cScript.offset = new Vector2(moveStrength * 40, 2 + Mathf.Abs(moveStrength) * 5);
-            Camera.main.orthographicSize = camSize + Mathf.Abs(moveStrength) * 10;  
+            //cScript.offset = new Vector2(moveStrength * 40, 2 + Mathf.Abs(moveStrength) * 5);
+            //Camera.main.orthographicSize = camSize + Mathf.Abs(moveStrength) * 10;  
             Camera.main.transform.eulerAngles = new Vector3(0, 0, -angle);
         }
 
@@ -76,6 +73,13 @@ public class PlayerScript : MonoBehaviour
 
     private void Update()
     {
+#if(UNITY_ANDROID)
+        //Feuer Eis:
+        if (Input.touchCount > 0 && !prevTapp && !blockShoot) IceManager.CallFireIce();
+        //blockShoot = false;
+        prevTapp = Input.touchCount > 0;
+#endif
+
         //Springen:
         if (Input.gyro.userAcceleration.z > thresh_jump && procMove.groundDist < .6f && !pauseMove)
         {

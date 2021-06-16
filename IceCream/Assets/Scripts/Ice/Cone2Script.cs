@@ -170,7 +170,6 @@ public class Cone2Script : MonoBehaviour, ICone
 
         prevPosition = rb.position;
         windForce = Vector2.zero;
-
         //Test:
         //for (int i = 1; i < iceTower.Count; i++) iceTower[i].SetID(i);
     }
@@ -274,7 +273,7 @@ public class Cone2Script : MonoBehaviour, ICone
                 rot = rot_cntct * weight * 1 * (1 - weight);
 
             //Stelle sicher, dass der Kontakt zur Vorherigen Kugel aufrecht erhalten wird
-            //if (i != iceTower.Count - 1 && (Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > (iceTower[i + 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .325f) rot = rot_prev;
+            if (i != iceTower.Count - 1 && (Mathf.Sign(rot_prev) == Mathf.Sign(rot_cntct) || Mathf.Abs(rot_prev) > Mathf.Abs(rot_cntct)) && diff_cntct_pos.sqrMagnitude > (iceTower[i + 1].Get_attribute().scale + iceTower[i].Get_attribute().scale) * .325f) rot = rot_prev;
 
             //Rotiere:
             posInCone = iceTower[i].Get_posInCone();

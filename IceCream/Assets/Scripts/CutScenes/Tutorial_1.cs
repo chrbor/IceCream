@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static CameraScript;
 using static GameManager;
+using static CommentaryScript;
 
 public class Tutorial_1 : TutorialScript
 {
@@ -146,18 +147,32 @@ public class Tutorial_1 : TutorialScript
             cScript.transform.position = start + diff * curve.Evaluate(count);
             yield return new WaitForFixedUpdate();
         }
+#if (UNITY_STANDALONE)
+        text.text = "Die Steuerung erfolgt über die Tasten WASD";
+#elif (UNITY_ANDROID)
+        text.text = "Neige das Smartphone nach links oder rechts um zu laufen.";
+#endif
 
-        text.text = "Die Steuerung erfolgt über die PFEILTASTEN";
         for (float count = 0; count < 1; count += Time.fixedDeltaTime * 5) { textFieldGroup.alpha = count; yield return new WaitForFixedUpdate(); }
         textFieldGroup.alpha = 1;
 
         yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
         yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
 
-        text.text = "Sobald man Eiskugeln hat, kann man sie mit der LEERTASTE verschießen";
+#if (UNITY_ANDROID)
+        text.text = "Stoße das Smartphone nach hinten um zu springen";
         yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
         yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
 
+        text.text = "Sobald man Eiskugeln hat, kann man sie durch Tippen auf den Touchscreen verschießen";
+        yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
+        yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
+#elif(UNITY_STANDALONE)
+
+        text.text = "Sobald man Eiskugeln hat, kann man sie mit der LEERTASTE verschießen";
+        yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
+        yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);
+#endif
         text.text = "Und damit kommen wir zum Ende des Tutorials.";
         yield return new WaitWhile(() => Input.GetMouseButton(0) || Input.touchCount > 0);
         yield return new WaitUntil(() => Input.GetMouseButton(0) || Input.touchCount > 0);

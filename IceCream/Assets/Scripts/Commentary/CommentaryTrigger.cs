@@ -15,9 +15,8 @@ public class CommentaryTrigger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (commentary == null || !commentaryON) return;
-        if(id >= 0) commentaryMask |= (long)1<<id;
-        commentary.PlayCommentary(commentName);
+        if (commentary == null) return;
+        commentary.PlayCommentary(commentName, id);
         Destroy(gameObject);
     }
 }
